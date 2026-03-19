@@ -5,6 +5,9 @@ export class UserEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @Column({ nullable: true })
+  companyId: string;
+  
   @Column({ nullable: false })
   name: string;
 

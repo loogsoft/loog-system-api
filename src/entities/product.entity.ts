@@ -19,6 +19,7 @@ import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
 import { SupplierEntity } from './supplier.entity';
 
 import { ProductVariationEntity } from './product-variation.entity';
+import { CreditSaleEntity } from './credit-sale.entity';
 
 @Entity('products')
 export class ProductEntity {
@@ -61,7 +62,6 @@ export class ProductEntity {
   })
   price?: number | null;
 
-
   @Index()
   @Column({
     type: 'varchar',
@@ -87,7 +87,7 @@ export class ProductEntity {
   @Column({ type: 'boolean', nullable: true, default: false })
   activeLowStock?: boolean;
 
-  @Column({ type: 'int', nullable: true, default: null})
+  @Column({ type: 'int', nullable: true, default: null })
   stock?: number | null;
 
   @Column({ type: 'int', default: 0 })
@@ -124,4 +124,13 @@ export class ProductEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToOne(() => CreditSaleEntity, (credit) => credit.products, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({
+    name: 'credit_sale_id',
+  })
+  creditSale?: CreditSaleEntity;
 }

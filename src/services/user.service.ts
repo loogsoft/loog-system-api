@@ -51,6 +51,7 @@ export class UserService {
         email: dto.email,
         password: passwordHash,
         userType: dto.userType,
+        companyId: dto.companyId,
       });
 
       const savedUser = await this.repo.save(userSave);
@@ -169,7 +170,7 @@ export class UserService {
     }
   }
 
-  async verifyEmail(dto: LoginRequestDto): Promise<{ message: string }> {
+  async verifyEmail(dto: LoginRequestDto): Promise<{ companyId: string }> {
     this.logger.log(`verifyEmail:start ${toLogString({ email: dto.email })}`);
 
     try {
@@ -200,7 +201,7 @@ export class UserService {
         `verifyEmail:success ${toLogString({ id: user.id, email: user.email })}`,
       );
 
-      return { message: 'Código de verificação enviado para o email' };
+      return { companyId: user.companyId };
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('verifyEmail:error', errorStack);

@@ -11,6 +11,8 @@ import { UploadModule } from './modules/upload.module';
 import { StockMovementModule } from './modules/stock-movement.module';
 import { MessageModule } from './modules/message.module';
 import { PrizesModule } from './modules/prizes.module';
+import { CompanyModule } from './modules/company.module';
+import { CreditSaleModule } from './modules/credit-sale.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { PrizesModule } from './modules/prizes.module';
     StockMovementModule,
     MessageModule,
     PrizesModule,
+    CompanyModule,
+    CreditSaleModule,
   ],
 })
 export class AppModule {}

@@ -6,6 +6,9 @@ export class UserResponseDto {
   id: string;
 
   @Expose()
+  companyId: string;
+
+  @Expose()
   name: string;
 
   @Expose()
