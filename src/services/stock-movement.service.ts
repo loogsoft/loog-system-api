@@ -32,10 +32,10 @@ export class StockMovementService {
       const productName = dto.productName;
 
       try {
-        product = await this.productsService.findOne(id, dto.companyId);
+        product = await this.productsService.findOne(id);
       } catch {
         variation = await this.variationRepo.findOne({
-          where: { id, ...(dto.companyId && { companyId: dto.companyId }) },
+          where: { id },
           relations: ['product'],
         });
       }
@@ -81,11 +81,14 @@ export class StockMovementService {
     }
   }
 
-  async findAll(companyId: string) {
+  async findAll() {
     this.logger.log('findAll:start');
 
     try {
-      const movements = await this.repo.find({ where: { companyId }, relations: ['variation'] });
+      const movements = await this.repo.find({
+        relations: ['variation'],
+        order: { createdAt: 'DESC' },
+      });
 
       this.logger.log(
         `findAll:success ${toLogString({ count: movements.length })}`,

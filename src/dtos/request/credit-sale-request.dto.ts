@@ -10,6 +10,7 @@ import {
   Min,
 } from 'class-validator';
 import { CreditSaleStatusEnum } from '../enums/credit-sale-status.enum';
+import { CreditSaleInstallmentRequestDto } from './credit-sale-installment-request.dto';
 
 export class CreditSaleRequestDto {
   @IsNumber()
@@ -19,10 +20,6 @@ export class CreditSaleRequestDto {
   @IsString()
   @IsNotEmpty()
   customerId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  companyId: string;
 
   @IsNumber()
   @Min(1)

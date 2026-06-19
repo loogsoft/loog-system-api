@@ -56,9 +56,9 @@ export class ProductsController {
     return plainToInstance(ProductResponseDto, product);
   }
 
-  @Get('find-all/:companyId')
-  async findAll(@Param('companyId') companyId: string) {
-    const products = await this.productsService.findAll(companyId);
+  @Get()
+  async findAll() {
+    const products = await this.productsService.findAll();
     return plainToInstance(ProductResponseDto, products);
   }
 

@@ -13,7 +13,7 @@ export class MessageEntity {
   @Column({ nullable: false })
   productId: string;
 
-  @Column()
+  @Column({ nullable: true })
   companyId: string;
 
   @Column({ nullable: false })

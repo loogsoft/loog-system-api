@@ -23,7 +23,7 @@ export class StockMovementEntity {
   @Column()
   quantity: number;
 
-  @Column({nullable: false})
+  @Column({ nullable: true })
   companyId: string;
 
   @Column({ nullable: true })
@@ -38,7 +38,7 @@ export class StockMovementEntity {
   @Column()
   reason: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   price: string;
 
   @Column({ nullable: false })

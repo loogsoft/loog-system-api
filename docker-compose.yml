@@ -1,0 +1,32 @@
+services:
+  api:
+    # build: .
+    image: andersonmendss/loogsystemapi:v1
+    container_name: api1
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://andersonmendes:root@postgres:5432/loog_system
+      DB_NAME: loog_system
+    depends_on:
+      - postgres
+    command: npm run start:dev
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres2
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: andersonmendes
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: loog_system
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

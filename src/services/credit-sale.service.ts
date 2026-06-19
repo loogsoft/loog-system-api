@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -11,51 +7,60 @@ import { CreditSaleResponseDto } from 'src/dtos/response/credit-sale-response.dt
 import { CreditCustomerEntity } from '../entities/credit-customer.entity';
 import { CreditSaleEntity } from '../entities/credit-sale.entity';
 import { ProductEntity } from '../entities/product.entity';
+import { CreditSaleInstallmentStatusEnum } from 'src/dtos/enums/credit-sale-instalment-status.enum';
+import { CreditSaleInstallmentEntity } from '../entities/credit-sale-installment.entity';
 
 @Injectable()
 export class CreditSaleService {
   constructor(
     @InjectRepository(CreditSaleEntity)
     private readonly creditSaleRepository: Repository<CreditSaleEntity>,
-
-    @InjectRepository(CreditCustomerEntity)
-    private readonly creditCustomerRepository: Repository<CreditCustomerEntity>,
-
-    @InjectRepository(ProductEntity)
-    private readonly productRepository: Repository<ProductEntity>,
   ) {}
 
+  private addMonths(date: Date, months: number): Date {
+    const target = new Date(date);
+    const originalDay = target.getDate();
+
+    target.setMonth(target.getMonth() + months);
+
+    if (target.getDate() !== originalDay) {
+      target.setDate(0);
+    }
+
+    return target;
+  }
+
   async create(dto: CreditSaleRequestDto): Promise<CreditSaleResponseDto> {
-    const customer = await this.creditCustomerRepository.findOne({
-      where: { id: dto.customerId },
-    });
-
-    if (!customer) {
-      throw new NotFoundException('Cliente do crediario nao encontrado');
-    }
-
     const productIds = [...new Set(dto.productIds)];
-    const products = await this.productRepository.find({
-      where: { id: In(productIds) },
-      relations: { creditSale: true },
-    });
-
-    if (products.length !== productIds.length) {
-      throw new NotFoundException('Um ou mais produtos nao foram encontrados');
-    }
-
-    const productAlreadyLinked = products.find((product) => product.creditSale);
-
-    if (productAlreadyLinked) {
-      throw new BadRequestException(
-        'Um ou mais produtos ja estao associados a uma venda fiado',
-      );
-    }
 
     return await this.creditSaleRepository.manager.transaction(
       async (manager) => {
         const creditSaleRepository = manager.getRepository(CreditSaleEntity);
+        const creditCustomerRepository =
+          manager.getRepository(CreditCustomerEntity);
         const productRepository = manager.getRepository(ProductEntity);
+        const creditSaleInstallmentRepository = manager.getRepository(
+          CreditSaleInstallmentEntity,
+        );
+        const customer = await creditCustomerRepository.findOne({
+          where: { id: dto.customerId },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!customer) {
+          throw new NotFoundException('Cliente do crediario nao encontrado');
+        }
+
+        const products = await productRepository.find({
+          where: { id: In(productIds) },
+          relations: { creditSale: true },
+        });
+
+        if (products.length !== productIds.length) {
+          throw new NotFoundException(
+            'Um ou mais produtos nao foram encontrados',
+          );
+        }
 
         const entity = creditSaleRepository.create({
           totalAmount: dto.totalAmount,
@@ -63,10 +68,40 @@ export class CreditSaleService {
           status: dto.status,
           date: dto.date,
           customer,
-          companyId: dto.companyId,
         });
 
         const savedCreditSale = await creditSaleRepository.save(entity);
+
+        const totalCents = Math.round(Number(dto.totalAmount) * 100);
+        const baseCents = Math.floor(totalCents / dto.installment);
+        const remainderCents = totalCents % dto.installment;
+        const saleDate = new Date(dto.date);
+
+        const installments = Array.from(
+          { length: dto.installment },
+          (_, index) => {
+            const installmentNumber = index + 1;
+            const amountCents =
+              installmentNumber === dto.installment
+                ? baseCents + remainderCents
+                : baseCents;
+
+            return creditSaleInstallmentRepository.create({
+              creditSale: savedCreditSale,
+              installmentNumber,
+              amount: amountCents / 100,
+              status: CreditSaleInstallmentStatusEnum.PENDING,
+              dueDate: this.addMonths(saleDate, installmentNumber),
+            });
+          },
+        );
+
+        await creditSaleInstallmentRepository.save(installments);
+        await creditCustomerRepository.save({
+          ...customer,
+          totalAmounts:
+            Number(customer.totalAmounts ?? 0) + Number(dto.totalAmount),
+        });
 
         await productRepository.save(
           products.map((product) => ({
@@ -80,6 +115,7 @@ export class CreditSaleService {
           relations: {
             customer: true,
             products: true,
+            installments: true,
           },
         });
 
@@ -90,12 +126,12 @@ export class CreditSaleService {
     );
   }
 
-  async findAll(companyId: string): Promise<CreditSaleResponseDto[]> {
+  async findAll(): Promise<CreditSaleResponseDto[]> {
     const creditSales = await this.creditSaleRepository.find({
-      where: { companyId },
       relations: {
         customer: true,
         products: true,
+        installments: true,
       },
       order: {
         date: 'DESC',
@@ -103,6 +139,25 @@ export class CreditSaleService {
     });
 
     return plainToInstance(CreditSaleResponseDto, creditSales, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findOne(id: string): Promise<CreditSaleResponseDto> {
+    const creditSale = await this.creditSaleRepository.findOne({
+      where: { id },
+      relations: {
+        customer: true,
+        products: true,
+        installments: true,
+      },
+    });
+
+    if (!creditSale) {
+      throw new NotFoundException('Crediario nao encontrado');
+    }
+
+    return plainToInstance(CreditSaleResponseDto, creditSale, {
       excludeExtraneousValues: true,
     });
   }

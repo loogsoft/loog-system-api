@@ -80,7 +80,6 @@ export class ProductsService {
               imageUrl,
               isActive: v.isActive ?? true,
               activeLowStock: v.activeLowStock,
-              companyId: v.companyId,
             });
           }),
         );
@@ -95,7 +94,6 @@ export class ProductsService {
         variations: variationEntities,
         color: dto.color ?? undefined,
         size: dto.size ?? undefined,
-        companyId: dto.companyId,
       });
 
       const savedProduct = await this.repo.save(product);
@@ -114,9 +112,8 @@ export class ProductsService {
     }
   }
 
-  async findAll(companyId: string) {
+  async findAll() {
     return await this.repo.find({
-      where: { companyId },
       relations: {
         images: true,
         supplier: true,
@@ -129,9 +126,9 @@ export class ProductsService {
     });
   }
 
-  async findOne(id: string, companyId?: string) {
+  async findOne(id: string) {
     const product = await this.repo.findOne({
-      where: { id, ...(companyId && { companyId }) },
+      where: { id },
 
       relations: {
         images: true,
@@ -230,7 +227,6 @@ export class ProductsService {
             imageUrl: imageUrl ?? existing?.imageUrl,
             isActive: v.isActive ?? true,
             activeLowStock: v.activeLowStock,
-            companyId: v.companyId,
           });
         }),
       );

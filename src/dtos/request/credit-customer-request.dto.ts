@@ -12,10 +12,6 @@ export class CreditCustomerRequestDto {
   @IsNotEmpty()
   customerName: string;
 
-  @IsString()
-  @IsNotEmpty()
-  companyId: string;
-
   @IsEmail()
   @IsNotEmpty()
   customerEmail: string;

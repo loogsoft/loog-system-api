@@ -6,7 +6,6 @@ import {
   IsIn,
   IsInt,
   Min,
-  IsNotEmpty,
 } from 'class-validator';
 
 const SUPPLIER_STATUS = ['active', 'inactive'] as const;
@@ -15,10 +14,6 @@ export class SupplierRequestDto {
   @IsString()
   @MaxLength(180)
   name: string;
-
-  @IsString()
-  @IsNotEmpty()
-  companyId?: string;
 
   @IsOptional()
   @IsString()

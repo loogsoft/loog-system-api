@@ -7,9 +7,12 @@ export const typeOrmConfig = (
   type: 'postgres',
   url: configService.get<string>('DATABASE_URL'),
 
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl:
+    configService.get<string>('NODE_ENV') === 'production'
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
 
   autoLoadEntities: true,
   synchronize: true,

@@ -1,6 +1,4 @@
-import { CreditSaleStatusEnum } from 'src/dtos/enums/credit-sale-status.enum';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { ProductEntity } from './product.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('company')
 export class CompanyEntity {

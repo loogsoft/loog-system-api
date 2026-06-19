@@ -14,7 +14,7 @@ export class SupplierEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   companyId: string;
 
   @Column({ nullable: false })

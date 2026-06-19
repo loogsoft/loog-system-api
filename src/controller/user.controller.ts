@@ -17,6 +17,7 @@ import { LoginResponseDto } from 'src/dtos/response/login-response.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { VerifyCoderequestDto } from 'src/dtos/request/verification-code-request.dto';
 import type { Request as ExpressRequest } from 'express';
+import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
 
 type AuthenticatedRequest = ExpressRequest & {
   user: {
@@ -43,15 +44,16 @@ export class UsersController {
   verifyCode(@Body() dto: VerifyCoderequestDto): Promise<LoginResponseDto> {
     return this.usersService.validateUser(dto.email, dto.code);
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@Request() req: AuthenticatedRequest): AuthenticatedRequest['user'] {
     return req.user;
   }
 
-  @Get('find-all/:companyId')
-  findAll(@Param('companyId') companyId: string): Promise<UserResponseDto[]> {
-    return this.usersService.findAll(companyId);
+  @Get('find-all')
+  findAll(): Promise<UserResponseDto[]> {
+    return this.usersService.findAll();
   }
 
   @Get(':id')
@@ -70,5 +72,13 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  @Post(':id/update-password')
+  updatePassword(
+    @Param('id') id: string,
+    @Body() dto: UpdatePasswordRequestDto,
+  ): Promise<UserResponseDto> {
+    return this.usersService.updatePassword(id, dto);
   }
 }

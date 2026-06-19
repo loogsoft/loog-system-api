@@ -22,10 +22,6 @@ export class ProductRequestDto {
   @IsNotEmpty({ message: 'Campo nome vazio' })
   name: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'Campo companyId vazio' })
-  companyId: string;
-
   @IsOptional()
   @IsString()
   description?: string;

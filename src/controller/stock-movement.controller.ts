@@ -11,9 +11,9 @@ export class StockMovementController {
     return this.service.create(dto);
   }
 
-  @Get('find-all/:companyId')
-  findAll(@Param('companyId') companyId: string) {
-    return this.service.findAll(companyId);
+  @Get()
+  findAll() {
+    return this.service.findAll();
   }
 
   @Get('variation/:variationId')

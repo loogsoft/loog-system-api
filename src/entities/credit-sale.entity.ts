@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { ProductEntity } from './product.entity';
 import { CreditCustomerEntity } from './credit-customer.entity';
+import { CreditSaleInstallmentEntity } from './credit-sale-installment.entity';
 
 @Entity('credit-sale')
 export class CreditSaleEntity {
@@ -23,6 +24,12 @@ export class CreditSaleEntity {
   // Valor total da compra
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   totalAmount: number;
+
+  @OneToMany(
+    () => CreditSaleInstallmentEntity,
+    (installment) => installment.creditSale,
+  )
+  installments: CreditSaleInstallmentEntity[];
 
   // Quantidade de parcelas
   @Column({ nullable: false })

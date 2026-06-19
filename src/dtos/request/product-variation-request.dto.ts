@@ -6,8 +6,6 @@ import {
   IsInt,
   MaxLength,
   Min,
-  IsUrl,
-  IsNotEmpty,
 } from 'class-validator';
 
 export class ProductVariationRequestDto {
@@ -15,10 +13,6 @@ export class ProductVariationRequestDto {
   @IsString()
   @MaxLength(100)
   name?: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Campo companyId vazio' })
-  companyId: string;
 
   @IsOptional()
   @IsNumber()

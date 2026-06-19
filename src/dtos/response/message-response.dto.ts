@@ -8,9 +8,6 @@ export class MessageResponseDto {
   productId: string;
 
   @Expose()
-  companyId: string;
-
-  @Expose()
   name: string;
 
   @Expose()

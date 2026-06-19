@@ -33,7 +33,6 @@ export class MessagesService {
         description: dto.description,
         type: dto.type,
         productId: dto.productId,
-        companyId: dto.companyId,
       });
       const saved = await this.repo.save(message);
       const result = plainToInstance(MessageResponseDto, saved, {
@@ -50,10 +49,10 @@ export class MessagesService {
     }
   }
 
-  async findAll(companyId: string): Promise<MessageResponseDto[]> {
+  async findAll(): Promise<MessageResponseDto[]> {
     this.logger.log('findAll:start');
     try {
-      const messages = await this.repo.find({ where: { companyId } });
+      const messages = await this.repo.find({ order: { date: 'DESC' } });
       const result = plainToInstance(MessageResponseDto, messages, {
         excludeExtraneousValues: true,
       });
@@ -68,11 +67,11 @@ export class MessagesService {
     }
   }
 
-  async findOne(companyId: string, id: string): Promise<MessageResponseDto> {
+  async findOne(id: string): Promise<MessageResponseDto> {
     this.logger.log(`findOne:start ${toLogString({ productId: id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId },
+        where: { id: Number(id) },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -95,7 +94,7 @@ export class MessagesService {
     this.logger.log(`update:start ${toLogString({ productId: id, dto })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId: dto.companyId },
+        where: { id: Number(id) },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -116,11 +115,11 @@ export class MessagesService {
     }
   }
 
-  async remove(id: string, companyId: string): Promise<string> {
+  async remove(id: string): Promise<string> {
     this.logger.log(`remove:start ${toLogString({ productId: id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId },
+        where: { id: Number(id) },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');

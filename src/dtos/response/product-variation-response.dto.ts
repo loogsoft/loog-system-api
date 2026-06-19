@@ -5,9 +5,6 @@ export class ProductVariationResponseDto {
   id: string;
 
   @Expose()
-  companyId: string;
-
-  @Expose()
   name: string | null;
 
   @Expose()

@@ -10,9 +10,6 @@ export class ProductResponseDto {
   id: string;
 
   @Expose()
-  companyId: string;
-
-  @Expose()
   name: string;
 
   @Expose()

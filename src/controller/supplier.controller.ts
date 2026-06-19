@@ -37,9 +37,9 @@ export class SuppliersController {
     return this.service.update(id, dto, files);
   }
 
-  @Get('find-all/:companyId')
-  findAll(@Param('companyId') companyId: string) {
-    return this.service.findAll(companyId);
+  @Get()
+  findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')

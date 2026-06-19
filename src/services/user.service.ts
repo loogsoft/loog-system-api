@@ -16,6 +16,7 @@ import { LoginResponseDto } from 'src/dtos/response/login-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
 import { toLogString } from 'src/utils/logging';
+import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
 
 @Injectable()
 export class UserService {
@@ -70,11 +71,11 @@ export class UserService {
     }
   }
 
-  async findAll(companyId: string): Promise<UserResponseDto[]> {
+  async findAll(): Promise<UserResponseDto[]> {
     this.logger.log('findAll:start');
 
     try {
-      const users = await this.repo.find({ where: { companyId } });
+      const users = await this.repo.find({ order: { dataCadastro: 'DESC' } });
       const result = plainToInstance(UserResponseDto, users);
 
       this.logger.log(
@@ -107,6 +108,7 @@ export class UserService {
       throw err;
     }
   }
+
   async update(
     id: string,
     dto: Partial<UserRequestDto>,
@@ -258,6 +260,46 @@ export class UserService {
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('validateUser:error', errorStack);
+      throw err;
+    }
+  }
+
+  async updatePassword(
+    id: string,
+    dto: UpdatePasswordRequestDto,
+  ): Promise<UserResponseDto> {
+    this.logger.log(`update:start ${toLogString({ id, dto })}`);
+
+    try {
+      const user = await this.repo.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuário não encontrado');
+      }
+
+      if (dto.defaultPassword && dto.newPassword) {
+        const passwordMatch = await bcrypt.compare(dto.defaultPassword, user.password);
+
+        if (!passwordMatch) {
+          throw new UnauthorizedException('Senha atual incorreta');
+        }
+
+        user.password = await bcrypt.hash(dto.newPassword, 10);
+      }
+      
+      const updatedUser = await this.repo.save(user);
+      const result = plainToInstance(UserResponseDto, updatedUser, {
+        excludeExtraneousValues: true,
+      });
+
+      this.logger.log(`update:success ${toLogString({ id })}`);
+
+      return result;
+    } catch (err) {
+      const errorStack = err instanceof Error ? err.stack : String(err);
+      this.logger.error('update:error', errorStack);
       throw err;
     }
   }

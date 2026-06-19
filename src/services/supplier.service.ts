@@ -17,53 +17,64 @@ export class SuppliersService {
   ) {}
 
   async create(dto: SupplierRequestDto, files?: Express.Multer.File[]) {
-      this.logger.log(`create:start ${toLogString({ dto })}`);
-      try {
-        let images: import('src/entities/image.entity').ImageEntity[] = [];
-        if (files && files.length > 0) {
-          images = await this.imageService.createImages(files);
-        }
-        const supplier = this.repo.create({ ...dto, images });
-        const savedSupplier = await this.repo.save(supplier);
-        this.logger.log(
-          `create:success ${toLogString({ id: savedSupplier.id })}`,
-        );
-        return savedSupplier;
-      } catch (err) {
-        const errorStack = err instanceof Error ? err.stack : String(err);
-        this.logger.error('create:error', errorStack);
-        throw err;
+    this.logger.log(`create:start ${toLogString({ dto })}`);
+    try {
+      let images: import('src/entities/image.entity').ImageEntity[] = [];
+      if (files && files.length > 0) {
+        images = await this.imageService.createImages(files);
       }
-  }
-  
-  async update(id: string, dto: SupplierRequestDto, files?: Express.Multer.File[]) {
-      this.logger.log(`update:start ${toLogString({ id, dto })}`);
-      try {
-        const supplier = await this.repo.findOne({ where: { id }, relations: ['images'] });
-        if (!supplier) {
-          throw new NotFoundException('Fornecedor não encontrado');
-        }
-        let images: import('src/entities/image.entity').ImageEntity[] = supplier.images || [];
-        if (files && files.length > 0) {
-          const newImages = await this.imageService.createImages(files);
-          images = [...images, ...newImages];
-        }
-        Object.assign(supplier, { ...dto, images });
-        const updated = await this.repo.save(supplier);
-        this.logger.log(`update:success ${toLogString({ id })}`);
-        return updated;
-      } catch (err) {
-        const errorStack = err instanceof Error ? err.stack : String(err);
-        this.logger.error('update:error', errorStack);
-        throw err;
-      }
+      const supplier = this.repo.create({ ...dto, images });
+      const savedSupplier = await this.repo.save(supplier);
+      this.logger.log(
+        `create:success ${toLogString({ id: savedSupplier.id })}`,
+      );
+      return savedSupplier;
+    } catch (err) {
+      const errorStack = err instanceof Error ? err.stack : String(err);
+      this.logger.error('create:error', errorStack);
+      throw err;
+    }
   }
 
-  async findAll(companyId: string) {
+  async update(
+    id: string,
+    dto: SupplierRequestDto,
+    files?: Express.Multer.File[],
+  ) {
+    this.logger.log(`update:start ${toLogString({ id, dto })}`);
+    try {
+      const supplier = await this.repo.findOne({
+        where: { id },
+        relations: ['images'],
+      });
+      if (!supplier) {
+        throw new NotFoundException('Fornecedor não encontrado');
+      }
+      let images: import('src/entities/image.entity').ImageEntity[] =
+        supplier.images || [];
+      if (files && files.length > 0) {
+        const newImages = await this.imageService.createImages(files);
+        images = [...images, ...newImages];
+      }
+      Object.assign(supplier, { ...dto, images });
+      const updated = await this.repo.save(supplier);
+      this.logger.log(`update:success ${toLogString({ id })}`);
+      return updated;
+    } catch (err) {
+      const errorStack = err instanceof Error ? err.stack : String(err);
+      this.logger.error('update:error', errorStack);
+      throw err;
+    }
+  }
+
+  async findAll() {
     this.logger.log('findAll:start');
 
     try {
-      const suppliers = await this.repo.find({ where: { companyId }, relations: ['images'] });
+      const suppliers = await this.repo.find({
+        relations: ['images'],
+        order: { createdAt: 'DESC' },
+      });
 
       this.logger.log(
         `findAll:success ${toLogString({ count: suppliers.length })}`,
@@ -81,7 +92,10 @@ export class SuppliersService {
     this.logger.log(`findOne:start ${toLogString({ id })}`);
 
     try {
-      const supplier = await this.repo.findOne({ where: { id }, relations: ['images'] });
+      const supplier = await this.repo.findOne({
+        where: { id },
+        relations: ['images'],
+      });
 
       this.logger.log(`findOne:success ${toLogString({ id })}`);
 

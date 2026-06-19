@@ -14,6 +14,7 @@ import { PrizesModule } from './modules/prizes.module';
 import { CompanyModule } from './modules/company.module';
 import { CreditSaleModule } from './modules/credit-sale.module';
 import { CreditCustomerModule } from './modules/credit-customer.module';
+import { CreditSaleInstallmentModule } from './modules/credit-sale-installment.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CreditCustomerModule } from './modules/credit-customer.module';
     PrizesModule,
     CompanyModule,
     CreditSaleModule,
+    CreditSaleInstallmentModule,
     CreditCustomerModule,
     CreditCustomerModule,
   ],

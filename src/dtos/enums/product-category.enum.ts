@@ -13,4 +13,5 @@ export enum ProductCategoryEnum {
   BELT = 'Cinto',
   WALLET = 'Carteira',
   SUNGLASSES = 'Óculos',
+  PHONE = 'Fone',
 }

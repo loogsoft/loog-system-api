@@ -5,6 +5,7 @@ import { CreditSaleEntity } from '../entities/credit-sale.entity';
 import { ProductEntity } from '../entities/product.entity';
 import { CreditSaleService } from '../services/credit-sale.service';
 import { CreditSaleController } from '../controller/credit-sale.controller';
+import { CreditSaleInstallmentModule } from './credit-sale-installment.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CreditSaleController } from '../controller/credit-sale.controller';
       CreditCustomerEntity,
       ProductEntity,
     ]),
+    CreditSaleInstallmentModule 
   ],
   providers: [CreditSaleService],
   controllers: [CreditSaleController],

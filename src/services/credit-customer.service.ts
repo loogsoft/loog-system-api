@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreditCustomerEntity } from '../entities/credit-customer.entity';
@@ -13,21 +13,50 @@ export class CreditCustomerService {
     private readonly repo: Repository<CreditCustomerEntity>,
   ) {}
 
-  async create(dto: CreditCustomerRequestDto): Promise<CreditCustomerResponseDto> {
+  async create(
+    dto: CreditCustomerRequestDto,
+  ): Promise<CreditCustomerResponseDto> {
     const entity = this.repo.create({ ...dto });
     const saved = await this.repo.save(entity);
-    return plainToInstance(CreditCustomerResponseDto, saved, { excludeExtraneousValues: true });
+    return plainToInstance(CreditCustomerResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async findOne(id: string, companyId: string): Promise<CreditCustomerResponseDto> {
-    const entity = await this.repo.findOneByOrFail({ id, companyId });
-    return plainToInstance(CreditCustomerResponseDto, entity, { excludeExtraneousValues: true });
+  async findOne(id: string): Promise<CreditCustomerResponseDto> {
+    const entity = await this.repo.findOne({ where: { id } });
+
+    if (!entity) {
+      throw new NotFoundException('Cliente não encontrado');
+    }
+
+    return plainToInstance(CreditCustomerResponseDto, entity, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async findAll(companyId: string): Promise<CreditCustomerResponseDto[]> {
-    const list = await this.repo.find({ where: { companyId } });
-    return plainToInstance(CreditCustomerResponseDto, list, { excludeExtraneousValues: true });
+  async update(
+    id: string,
+    dto: CreditCustomerRequestDto,
+  ): Promise<CreditCustomerResponseDto> {
+    const entity = await this.repo.findOne({ where: { id } });
+
+    if (!entity) {
+      throw new NotFoundException('Cliente não encontrado');
+    }
+
+    Object.assign(entity, dto);
+    const updated = await this.repo.save(entity);
+
+    return plainToInstance(CreditCustomerResponseDto, updated, {
+      excludeExtraneousValues: true,
+    });
   }
 
-
+  async findAll(): Promise<CreditCustomerResponseDto[]> {
+    const list = await this.repo.find({ order: { date: 'DESC' } });
+    return plainToInstance(CreditCustomerResponseDto, list, {
+      excludeExtraneousValues: true,
+    });
+  }
 }

@@ -12,7 +12,7 @@ export class CreditCustomerEntity {
   // ID único da venda no crediário
   @PrimaryGeneratedColumn()
   id: string;
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   companyId: string;
 
   @OneToMany(() => CreditSaleEntity, (creditSale) => creditSale.customer, {
@@ -61,7 +61,13 @@ export class CreditCustomerEntity {
   zipCode: string;
 
   // Valor total de compras
-  @Column({ nullable: true })
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: false,
+    default: 0,
+  })
   totalAmounts: number;
 
   // Data da venda

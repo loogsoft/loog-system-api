@@ -15,9 +15,6 @@ export class StockMovementRequestDto {
   @IsNotEmpty()
   variationId: string;
 
-  @IsNotEmpty()
-  companyId: string;
-
   @IsInt()
   @Min(1)
   quantity: number;

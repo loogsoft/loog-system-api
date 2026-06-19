@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { MessagesService } from '../services/messages.service';
 import { MessageRequestDto } from '../dtos/request/message-request.dto';
 import { MessageResponseDto } from '../dtos/response/message-response.dto';
@@ -12,29 +20,26 @@ export class MessagesController {
     return this.messagesService.create(dto);
   }
 
-  @Get('find-all/:companyId')
-  async findAll(@Param('companyId') companyId: string): Promise<MessageResponseDto[]> {
-    return this.messagesService.findAll(companyId);
+  @Get()
+  async findAll(): Promise<MessageResponseDto[]> {
+    return this.messagesService.findAll();
   }
 
-  @Get('companyId/:companyId/:id')
-  async findOne(
-    @Param('companyId') companyId: string,
-    @Param('id') id: string
-  ): Promise<MessageResponseDto> {
-    return this.messagesService.findOne(companyId, id);
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<MessageResponseDto> {
+    return this.messagesService.findOne(id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: MessageRequestDto): Promise<MessageResponseDto> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: MessageRequestDto,
+  ): Promise<MessageResponseDto> {
     return this.messagesService.update(id, dto);
   }
 
-  @Delete('companyId/:companyId/:id')
-  async remove(
-    @Param('companyId') companyId: string,
-    @Param('id') id: string
-  ): Promise<string> {
-    return this.messagesService.remove(id, companyId);
+  @Delete(':id')
+  async remove(@Param('id') id: string): Promise<string> {
+    return this.messagesService.remove(id);
   }
 }
