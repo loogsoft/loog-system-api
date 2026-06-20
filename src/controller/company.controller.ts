@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { CompanyService } from '../services/company.service';
 import { CompanyRequestDto } from '../dtos/request/company-request.dto';
 import { CompanyResponseDto } from '../dtos/response/company-response.dto';
@@ -17,14 +25,16 @@ export class CompanyController {
     return await this.companyService.findAll();
   }
 
-
   @Get(':id')
   async findById(@Param('id') id: string): Promise<CompanyResponseDto> {
     return await this.companyService.findById(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: CompanyRequestDto): Promise<CompanyResponseDto> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: CompanyRequestDto,
+  ): Promise<CompanyResponseDto> {
     return await this.companyService.update(id, dto);
   }
 

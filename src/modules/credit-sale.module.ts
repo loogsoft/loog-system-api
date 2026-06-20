@@ -14,7 +14,7 @@ import { CreditSaleInstallmentModule } from './credit-sale-installment.module';
       CreditCustomerEntity,
       ProductEntity,
     ]),
-    CreditSaleInstallmentModule 
+    CreditSaleInstallmentModule,
   ],
   providers: [CreditSaleService],
   controllers: [CreditSaleController],

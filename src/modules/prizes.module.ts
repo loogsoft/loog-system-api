@@ -7,7 +7,7 @@ import { PrizesService } from 'src/services/prizes.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Prize])],
   providers: [PrizesService],
-  controllers:[PrizesController],
+  controllers: [PrizesController],
   exports: [PrizesService],
 })
 export class PrizesModule {}

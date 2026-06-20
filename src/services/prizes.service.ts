@@ -24,7 +24,10 @@ export class PrizesService {
     return this.prizeRepository.findOneBy({ id });
   }
 
-  async update(id: number, data: Partial<PrizeRequestDto>): Promise<Prize | null> {
+  async update(
+    id: number,
+    data: Partial<PrizeRequestDto>,
+  ): Promise<Prize | null> {
     await this.prizeRepository.update(id, data);
     return this.findOne(id);
   }

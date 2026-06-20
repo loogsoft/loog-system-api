@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { PrizesService } from 'src/services/prizes.service';
 import { PrizeRequestDto } from 'src/dtos/request/prize-request.dto';
 import { Prize } from 'src/entities/prizes.entity';
@@ -24,7 +32,10 @@ export class PrizesController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() data: Partial<PrizeRequestDto>): Promise<Prize | null> {
+  async update(
+    @Param('id') id: number,
+    @Body() data: Partial<PrizeRequestDto>,
+  ): Promise<Prize | null> {
     return this.prizesService.update(Number(id), data);
   }
 

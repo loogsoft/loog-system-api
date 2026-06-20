@@ -8,15 +8,17 @@ export class UpdateProductRequestDto extends PartialType(ProductRequestDto) {
   @IsArray()
   @IsUUID('4', { each: true })
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
+    const transformValue = value as unknown;
+
+    if (typeof transformValue === 'string') {
       try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed;
+        const parsed = JSON.parse(transformValue) as unknown;
+        if (Array.isArray(parsed)) return parsed as unknown;
       } catch {
-        return value;
+        return transformValue;
       }
     }
-    return value;
+    return transformValue;
   })
   imageIds?: string[];
 }

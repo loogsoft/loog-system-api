@@ -49,7 +49,9 @@ export class ProductRequestDto {
   size?: string | null;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) =>
+    value === '' || value === 'null' || value === null ? null : Number(value),
+  )
   @IsNumber({}, { message: 'Preço promocional deve ser número' })
   @Min(0, { message: 'Preço promocional não pode ser negativo' })
   promoPrice?: number | null;
@@ -73,21 +75,23 @@ export class ProductRequestDto {
 
   @IsOptional()
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
+    const transformValue = value as unknown;
+
+    if (typeof transformValue === 'string') {
       try {
-        const parsed = JSON.parse(value);
+        const parsed = JSON.parse(transformValue) as unknown;
         if (Array.isArray(parsed)) {
           return plainToInstance(ProductVariationRequestDto, parsed);
         }
         return parsed;
       } catch {
-        return value;
+        return transformValue;
       }
     }
-    if (Array.isArray(value)) {
-      return plainToInstance(ProductVariationRequestDto, value);
+    if (Array.isArray(transformValue)) {
+      return plainToInstance(ProductVariationRequestDto, transformValue);
     }
-    return value;
+    return transformValue;
   })
   @IsArray()
   @ValidateNested({ each: true })
@@ -95,6 +99,9 @@ export class ProductRequestDto {
   variations?: ProductVariationRequestDto[];
 
   @IsOptional()
+  @Transform(({ value }) =>
+    value === '' || value === 'null' ? null : (value as unknown),
+  )
   @IsUUID()
-  supplierId?: string;
+  supplierId?: string | null;
 }

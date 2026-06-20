@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsEmail,
-  IsNumber,
-  IsNotEmpty,
-  IsDate,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsEmail, IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CompanyRequestDto {
   @IsString()

@@ -5,7 +5,7 @@ export class UserRequestDto {
   @IsString()
   @IsNotEmpty()
   name: string;
-  
+
   @IsString()
   @IsNotEmpty()
   companyId: string;

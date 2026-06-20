@@ -23,7 +23,12 @@ export class MessagesService {
         where: { productId: dto.productId },
       });
       if (exists) {
-        return plainToInstance(MessageResponseDto, exists, {
+        exists.name = dto.name;
+        exists.url = dto.url;
+        exists.description = dto.description;
+        exists.type = dto.type;
+        const updated = await this.repo.save(exists);
+        return plainToInstance(MessageResponseDto, updated, {
           excludeExtraneousValues: true,
         });
       }

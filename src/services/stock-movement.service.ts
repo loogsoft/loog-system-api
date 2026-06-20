@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StockMovementEntity } from 'src/entities/stock-movement.entity';
 import { ProductVariationEntity } from 'src/entities/product-variation.entity';
+import { ProductEntity } from 'src/entities/product.entity';
 import { StockMovementRequestDto } from 'src/dtos/request/stock-movement-request.dto';
 import { toLogString } from 'src/utils/logging';
 import { StockMovementType } from 'src/entities/stock-movement.entity';
@@ -26,7 +27,7 @@ export class StockMovementService {
     this.logger.log(`create:start ${toLogString({ dto })}`);
 
     try {
-      let product: any = null;
+      let product: ProductEntity | null = null;
       let variation: ProductVariationEntity | null = null;
       const id = dto.variationId;
       const productName = dto.productName;
@@ -44,10 +45,15 @@ export class StockMovementService {
         throw new NotFoundException('Produto ou Variação não encontrado');
       }
 
-      const { variationId, productName: _productName, ...rest } = dto;
-
       const movement = this.repo.create({
-        ...rest,
+        quantity: dto.quantity,
+        type: dto.type,
+        reason: dto.reason,
+        price: dto.price,
+        paymentMethod: dto.paymentMethod,
+        responsibleName: dto.responsibleName,
+        responsibleEmail: dto.responsibleEmail,
+        observation: dto.observation,
         variation: variation ?? undefined,
         productName,
       });

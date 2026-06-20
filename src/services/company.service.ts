@@ -40,9 +40,7 @@ export class CompanyService {
     const updated = await this.companyRepository.save(entity);
     return plainToInstance(CompanyResponseDto, updated);
   }
-  async delete(
-    id: string,
-  ): Promise<void> {
+  async delete(id: string): Promise<void> {
     const entity = await this.companyRepository.findOne({ where: { id } });
     if (!entity) throw new NotFoundException('Empresa não encontrada');
     await this.companyRepository.remove(entity);

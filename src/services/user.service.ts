@@ -200,7 +200,7 @@ export class UserService {
 
       await this.repo.save(user);
 
-      this.emailService.sendVerificationCode(user.email, code);
+      void this.emailService.sendVerificationCode(user.email, code);
 
       this.logger.log(
         `verifyEmail:success ${toLogString({ id: user.id, email: user.email })}`,
@@ -280,7 +280,10 @@ export class UserService {
       }
 
       if (dto.defaultPassword && dto.newPassword) {
-        const passwordMatch = await bcrypt.compare(dto.defaultPassword, user.password);
+        const passwordMatch = await bcrypt.compare(
+          dto.defaultPassword,
+          user.password,
+        );
 
         if (!passwordMatch) {
           throw new UnauthorizedException('Senha atual incorreta');
@@ -288,7 +291,7 @@ export class UserService {
 
         user.password = await bcrypt.hash(dto.newPassword, 10);
       }
-      
+
       const updatedUser = await this.repo.save(user);
       const result = plainToInstance(UserResponseDto, updatedUser, {
         excludeExtraneousValues: true,

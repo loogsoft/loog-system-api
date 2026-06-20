@@ -21,7 +21,8 @@ function maskString(value: string, key?: string): string {
     if (!domain) {
       return '***';
     }
-    const safeLocal = local.length <= 2 ? '*' : `${local[0]}***${local[local.length - 1]}`;
+    const safeLocal =
+      local.length <= 2 ? '*' : `${local[0]}***${local[local.length - 1]}`;
     return `${safeLocal}@${domain}`;
   }
 
@@ -32,7 +33,10 @@ function maskString(value: string, key?: string): string {
   return `${value.slice(0, 3)}***${value.slice(-2)}`;
 }
 
-function sanitizeObject(value: Record<string, unknown>, depth: number): Record<string, unknown> {
+function sanitizeObject(
+  value: Record<string, unknown>,
+  depth: number,
+): Record<string, unknown> {
   const output: Record<string, unknown> = {};
 
   Object.entries(value).forEach(([key, entry]) => {
@@ -48,7 +52,11 @@ function sanitizeObject(value: Record<string, unknown>, depth: number): Record<s
   return output;
 }
 
-export function sanitizeLogData(value: unknown, depth = 0, key?: string): unknown {
+export function sanitizeLogData(
+  value: unknown,
+  depth = 0,
+  key?: string,
+): unknown {
   if (depth > MAX_DEPTH) {
     return '[MaxDepth]';
   }
@@ -69,7 +77,10 @@ export function sanitizeLogData(value: unknown, depth = 0, key?: string): unknow
   }
 
   if (typeof value === 'string') {
-    if ((key && SENSITIVE_KEYS.has(key.toLowerCase())) || EMAIL_REGEX.test(value)) {
+    if (
+      (key && SENSITIVE_KEYS.has(key.toLowerCase())) ||
+      EMAIL_REGEX.test(value)
+    ) {
       return maskString(value, key);
     }
 
@@ -90,7 +101,7 @@ export function sanitizeLogData(value: unknown, depth = 0, key?: string): unknow
 export function toLogString(value: unknown): string {
   try {
     return JSON.stringify(sanitizeLogData(value));
-  } catch (error) {
+  } catch {
     return String(value);
   }
 }

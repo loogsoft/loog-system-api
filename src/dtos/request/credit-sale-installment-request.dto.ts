@@ -10,7 +10,6 @@ import {
 } from 'class-validator';
 import { CreditSaleInstallmentStatusEnum } from '../enums/credit-sale-instalment-status.enum';
 
-
 export class CreditSaleInstallmentRequestDto {
   @IsString()
   @IsNotEmpty()

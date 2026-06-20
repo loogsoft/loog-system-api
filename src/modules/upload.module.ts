@@ -8,5 +8,4 @@ import { UploadService } from 'src/services/upload.service';
   controllers: [UploadController],
   providers: [UploadService],
 })
-
 export class UploadModule {}

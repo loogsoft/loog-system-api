@@ -56,9 +56,15 @@ export class ProductsService {
         if (!supplier) throw new NotFoundException('Fornecedor não encontrado');
       }
 
-      const { variations, supplierId, ...dtoWithoutVariations } = dto;
+      const variations = dto.variations;
+      const dtoWithoutVariations = { ...dto };
+      delete dtoWithoutVariations.variations;
+      delete dtoWithoutVariations.supplierId;
 
-      const images = await this.imageService.createImages(files ?? []);
+      const hasVariations = Boolean(variations?.length);
+      const images = hasVariations
+        ? []
+        : await this.imageService.createImages(files ?? []);
 
       let variationEntities: ProductVariationEntity[] = [];
       if (variations && variations.length > 0) {
@@ -67,7 +73,7 @@ export class ProductsService {
             let imageUrl = v.imageUrl;
             const variationFile = variationFilesMap?.get(index);
             if (variationFile) {
-              const result: any =
+              const result =
                 await this.imageService.uploadToCloudinary(variationFile);
               imageUrl = result.secure_url;
             }
@@ -80,6 +86,7 @@ export class ProductsService {
               imageUrl,
               isActive: v.isActive ?? true,
               activeLowStock: v.activeLowStock,
+              lowStock: v.activeLowStock ? Math.max(1, v.lowStock ?? 5) : 0,
             });
           }),
         );
@@ -87,13 +94,17 @@ export class ProductsService {
 
       const product = this.repo.create({
         ...dtoWithoutVariations,
-        price: dto.price,
-        promoPrice: dto.promoPrice,
+        price: variationEntities.length > 0 ? null : dto.price,
+        promoPrice: variationEntities.length > 0 ? null : dto.promoPrice,
+        stock: variationEntities.length > 0 ? null : dto.stock,
+        activeLowStock:
+          variationEntities.length > 0 ? false : dto.activeLowStock,
+        lowStock: variationEntities.length > 0 ? 0 : dto.lowStock,
         supplier: supplier ?? undefined,
         images: images,
         variations: variationEntities,
-        color: dto.color ?? undefined,
-        size: dto.size ?? undefined,
+        color: variationEntities.length > 0 ? null : (dto.color ?? undefined),
+        size: variationEntities.length > 0 ? null : (dto.size ?? undefined),
       });
 
       const savedProduct = await this.repo.save(product);
@@ -149,8 +160,15 @@ export class ProductsService {
     variationFilesMap?: Map<number, Express.Multer.File>,
   ) {
     const product = await this.findOne(id);
+    const switchesToVariations = Boolean(dto.variations?.length);
 
-    if (dto.imageIds !== undefined) {
+    if (switchesToVariations) {
+      const productImageIds = (product.images ?? []).map((image) => image.id);
+      if (productImageIds.length > 0) {
+        await this.imageService.deleteImages(productImageIds);
+      }
+      product.images = [];
+    } else if (dto.imageIds !== undefined) {
       const currentImageIds = product.images.map((img) => img.id);
       const imageIdsToKeep = dto.imageIds || [];
       const imageIdsToDelete = currentImageIds.filter(
@@ -165,20 +183,42 @@ export class ProductsService {
       }
     }
 
-    if (files && files.length > 0) {
+    if (!switchesToVariations && files && files.length > 0) {
       const newImages = await this.imageService.createImages(files);
       product.images = [...product.images, ...newImages];
     }
 
-    const { imageIds, variations: variationDtos, ...updateData } = dto;
+    const {
+      variations: variationDtos,
+      supplierId,
+      price,
+      promoPrice,
+      color,
+      size,
+      ...updateData
+    } = dto;
+    delete updateData.imageIds;
 
-    Object.assign(product, {
-      ...updateData,
-      price: dto.price?.toString(),
-      promoPrice: dto.promoPrice?.toString(),
-      color: dto.color ?? undefined,
-      size: dto.size ?? undefined,
-    });
+    Object.assign(product, updateData);
+
+    if (price !== undefined) product.price = price;
+    if (promoPrice !== undefined) product.promoPrice = promoPrice;
+    if (color !== undefined) product.color = color;
+    if (size !== undefined) product.size = size;
+
+    if (supplierId !== undefined) {
+      if (supplierId === null) {
+        product.supplier = null;
+      } else {
+        const supplier = await this.supplierRepo.findOne({
+          where: { id: supplierId },
+        });
+        if (!supplier) {
+          throw new NotFoundException('Fornecedor não encontrado');
+        }
+        product.supplier = supplier;
+      }
+    }
 
     if (variationDtos !== undefined) {
       const existingVariations = product.variations ?? [];
@@ -195,7 +235,7 @@ export class ProductsService {
             .select('COUNT(*)', 'count')
             .from('stock_movements', 'sm')
             .where('sm."variationId" = :id', { id: variation.id })
-            .getRawOne();
+            .getRawOne<{ count: string }>();
 
           if (Number(movementCount?.count) > 0) {
             await this.variationRepo.update(variation.id, { isActive: false });
@@ -213,7 +253,7 @@ export class ProductsService {
           let imageUrl = v.imageUrl;
           const variationFile = variationFilesMap?.get(index);
           if (variationFile) {
-            const result: any =
+            const result =
               await this.imageService.uploadToCloudinary(variationFile);
             imageUrl = result.secure_url;
           }
@@ -227,10 +267,21 @@ export class ProductsService {
             imageUrl: imageUrl ?? existing?.imageUrl,
             isActive: v.isActive ?? true,
             activeLowStock: v.activeLowStock,
+            lowStock: v.activeLowStock ? Math.max(1, v.lowStock ?? 5) : 0,
           });
         }),
       );
       product.variations = variationEntities;
+
+      if (variationDtos.length > 0) {
+        product.price = null;
+        product.promoPrice = null;
+        product.stock = null;
+        product.activeLowStock = false;
+        product.lowStock = 0;
+        product.color = null;
+        product.size = null;
+      }
     }
 
     return await this.repo.save(product);

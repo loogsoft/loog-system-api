@@ -70,14 +70,14 @@ export class ProductEntity {
     type: 'varchar',
     nullable: true,
   })
-  color?: string;
+  color?: string | null;
 
   @Index()
   @Column({
     type: 'varchar',
     nullable: true,
   })
-  size?: string;
+  size?: string | null;
 
   @Column({
     type: 'numeric',
@@ -114,7 +114,7 @@ export class ProductEntity {
   @JoinColumn({
     name: 'supplier_id',
   })
-  supplier?: SupplierEntity;
+  supplier?: SupplierEntity | null;
 
   @OneToMany(() => ProductVariationEntity, (variation) => variation.product, {
     cascade: true,
