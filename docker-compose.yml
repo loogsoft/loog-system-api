@@ -10,7 +10,8 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://andersonmendes:root@postgres:5432/loog_system
+      # DATABASE_URL: postgresql://andersonmendes:root@postgres:5432/loog_system
+      DATABASE_URL: postgresql://postgres:ufXWtlrIYjIUMHYIhohUidGsQhNdYBqh@thomas.proxy.rlwy.net:41345/railway
       DB_NAME: loog_system
     depends_on:
       - postgres

@@ -19,7 +19,7 @@ export class EmailService {
     try {
       await this.resend.emails.send({
         from: 'Loog System <onboarding@resend.dev>',
-        to: 'loogsoftware@gmail.com',
+        to: 'andersonmendesdesouza2007@gmail.com',
         subject: 'Código de verificação – Loog System',
         html: `
   <div style="
