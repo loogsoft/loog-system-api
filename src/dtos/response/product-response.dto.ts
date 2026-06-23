@@ -10,6 +10,9 @@ export class ProductResponseDto {
   id: string;
 
   @Expose()
+  barCode?: string;
+
+  @Expose()
   name: string;
 
   @Expose()

@@ -31,6 +31,14 @@ export class ProductEntity {
 
   @Index()
   @Column({
+    length: 50,
+    unique: true,
+    nullable: true,
+  })
+  barCode?: string;
+
+  @Index()
+  @Column({
     length: 180,
   })
   name: string;

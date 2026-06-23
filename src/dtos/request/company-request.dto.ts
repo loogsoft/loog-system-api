@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsNumber, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsNumber,
+  IsNotEmpty,
+  IsOptional,
+} from 'class-validator';
 
 export class CompanyRequestDto {
   @IsString()
@@ -20,6 +26,10 @@ export class CompanyRequestDto {
   @IsString()
   @IsNotEmpty()
   color: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   // date removido do DTO pois não é enviado pelo frontend
 }

@@ -11,13 +11,18 @@ import {
   ValidateNested,
   IsNotEmpty,
   IsUUID,
+  MaxLength,
 } from 'class-validator';
-
 import { ProductCategoryEnum } from '../enums/product-category.enum';
 import { ProductVariationRequestDto } from './product-variation-request.dto';
 import { ProductStatusEnum } from '../enums/product-status.enum';
 
 export class ProductRequestDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  barCode?: string;
+
   @IsString()
   @IsNotEmpty({ message: 'Campo nome vazio' })
   name: string;

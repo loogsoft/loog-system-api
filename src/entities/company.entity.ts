@@ -28,6 +28,10 @@ export class CompanyEntity {
   @Column({ nullable: false })
   color: string;
 
+  // URL da logo personalizada da empresa
+  @Column({ type: 'text', nullable: true })
+  imageUrl?: string | null;
+
   // Data da venda
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;

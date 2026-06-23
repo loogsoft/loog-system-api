@@ -16,6 +16,15 @@ export class ProductVariationEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
+  @Column({
+    length: 50,
+    unique: true,
+    nullable: true,
+  })
+  barCode?: string;
+
+  @Index()
   @Column({ length: 120 })
   name: string;
 

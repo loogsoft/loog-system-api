@@ -3,17 +3,24 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const typeOrmConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres',
-  url: configService.get<string>('DATABASE_URL'),
+): TypeOrmModuleOptions => {
+  const databaseUrl = configService.get<string>('DATABASE_URL') ?? '';
+  const sslEnabled =
+    configService.get<string>('DB_SSL') === 'true' ||
+    configService.get<string>('NODE_ENV') === 'production' ||
+    /render\.com|railway\.app|neon\.tech|supabase\.co|sslmode=require|ssl=true/i.test(
+      databaseUrl,
+    );
 
-  ssl:
-    configService.get<string>('NODE_ENV') === 'production'
+  return {
+    type: 'postgres',
+    url: databaseUrl,
+    ssl: sslEnabled
       ? {
           rejectUnauthorized: false,
         }
       : false,
-
-  autoLoadEntities: true,
-  synchronize: true,
-});
+    autoLoadEntities: true,
+    synchronize: true,
+  };
+};

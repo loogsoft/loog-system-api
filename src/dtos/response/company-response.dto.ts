@@ -20,5 +20,8 @@ export class CompanyResponseDto {
   color: string;
 
   @Expose()
+  imageUrl?: string | null;
+
+  @Expose()
   date: Date;
 }
