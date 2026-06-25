@@ -26,7 +26,7 @@ export class StockMovementService {
         `findAll:success ${toLogString({ count: movements.length })}`,
       );
 
-      return movements.map(movement => this.toResponse(movement));
+      return movements.map((movement) => this.toResponse(movement));
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('findAll:error', errorStack);
@@ -48,7 +48,7 @@ export class StockMovementService {
         `findByVariation:success ${toLogString({ count: movements.length })}`,
       );
 
-      return movements.map(movement => this.toResponse(movement));
+      return movements.map((movement) => this.toResponse(movement));
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('findByVariation:error', errorStack);
@@ -61,7 +61,8 @@ export class StockMovementService {
       ...movement,
       type: movement.operation?.type ?? movement.type,
       reason: movement.operation?.reason ?? movement.reason,
-      paymentMethod: movement.operation?.paymentMethod ?? movement.paymentMethod,
+      paymentMethod:
+        movement.operation?.paymentMethod ?? movement.paymentMethod,
       responsibleName:
         movement.operation?.responsibleName ?? movement.responsibleName,
       responsibleEmail:

@@ -21,7 +21,7 @@ export class StockMovementEntity {
   @Column({ nullable: true })
   operationId?: string;
 
-  @ManyToOne(() => StockOperationEntity, operation => operation.movements, {
+  @ManyToOne(() => StockOperationEntity, (operation) => operation.movements, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'operationId' })

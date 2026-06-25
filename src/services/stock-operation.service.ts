@@ -53,7 +53,7 @@ export class StockOperationService {
       throw new BadRequestException('Informe ao menos um produto na operação.');
     }
 
-    const operationId = await this.dataSource.transaction(async manager => {
+    const operationId = await this.dataSource.transaction(async (manager) => {
       const operation = await manager.save(
         StockOperationEntity,
         manager.create(StockOperationEntity, {
@@ -264,7 +264,7 @@ export class StockOperationService {
 
   private buildProductTarget(product: ProductEntity): StockTarget {
     const activeVariations = (product.variations ?? []).filter(
-      variation => variation.isActive !== false,
+      (variation) => variation.isActive !== false,
     );
 
     if (activeVariations.length > 0) {
@@ -355,8 +355,9 @@ export class StockOperationService {
     }
 
     const uniqueProducts = Array.from(
-      new Map(products.filter(Boolean).map(product => [product.id, product]))
-        .values(),
+      new Map(
+        products.filter(Boolean).map((product) => [product.id, product]),
+      ).values(),
     );
 
     const creditSale = await manager.save(
@@ -402,7 +403,7 @@ export class StockOperationService {
     if (uniqueProducts.length > 0) {
       await manager.save(
         ProductEntity,
-        uniqueProducts.map(product => ({
+        uniqueProducts.map((product) => ({
           ...product,
           creditSale,
         })),

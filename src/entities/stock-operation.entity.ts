@@ -39,7 +39,7 @@ export class StockOperationEntity {
   @Column({ nullable: true })
   observation?: string;
 
-  @OneToMany(() => StockMovementEntity, movement => movement.operation, {
+  @OneToMany(() => StockMovementEntity, (movement) => movement.operation, {
     cascade: true,
   })
   movements: StockMovementEntity[];
