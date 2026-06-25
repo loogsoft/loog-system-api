@@ -8,6 +8,9 @@ export class ProductVariationResponseDto {
   name: string | null;
 
   @Expose()
+  barCode?: string | null;
+
+  @Expose()
   price?: string | null;
 
   @Expose()

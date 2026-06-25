@@ -9,6 +9,7 @@ import { SuppliersModule } from './modules/supplier.module';
 import { HealthModule } from './modules/health.module';
 import { UploadModule } from './modules/upload.module';
 import { StockMovementModule } from './modules/stock-movement.module';
+import { StockOperationModule } from './modules/stock-operation.module';
 import { MessageModule } from './modules/message.module';
 import { PrizesModule } from './modules/prizes.module';
 import { CompanyModule } from './modules/company.module';
@@ -33,6 +34,7 @@ import { CreditSaleInstallmentModule } from './modules/credit-sale-installment.m
     SuppliersModule,
     HealthModule,
     UploadModule,
+    StockOperationModule,
     StockMovementModule,
     MessageModule,
     PrizesModule,

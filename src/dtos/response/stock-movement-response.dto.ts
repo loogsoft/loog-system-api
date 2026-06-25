@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { StockMovementType } from '../../entities/stock-movement.entity';
+import { StockMovementType } from '../../entities/stock-movement-type.enum';
 import { ProductVariationResponseDto } from './product-variation-response.dto';
 
 export class StockMovementResponseDto {
@@ -9,6 +9,12 @@ export class StockMovementResponseDto {
   @Expose()
   @Type(() => ProductVariationResponseDto)
   variation: ProductVariationResponseDto;
+
+  @Expose()
+  productId?: string;
+
+  @Expose()
+  variationId?: string;
 
   @Expose()
   quantity: number;

@@ -15,6 +15,11 @@ export class ProductVariationRequestDto {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  barCode?: string;
+
+  @IsOptional()
   @IsNumber()
   @Min(0)
   price?: number;

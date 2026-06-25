@@ -4,54 +4,87 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { ProductVariationEntity } from './product-variation.entity';
+import { StockOperationEntity } from './stock-operation.entity';
+import { ProductEntity } from './product.entity';
+import { StockMovementType } from './stock-movement-type.enum';
 
-export enum StockMovementType {
-  IN = 'IN',
-  OUT = 'OUT',
-}
+export { StockMovementType } from './stock-movement-type.enum';
 
 @Entity('stock_movements')
 export class StockMovementEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => ProductVariationEntity, { onDelete: 'CASCADE' })
-  variation: ProductVariationEntity;
+  @Column({ nullable: true })
+  operationId?: string;
+
+  @ManyToOne(() => StockOperationEntity, (operation) => operation.movements, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'operationId' })
+  operation: StockOperationEntity;
+
+  @Column({ nullable: true })
+  productId?: string;
+
+  @ManyToOne(() => ProductEntity, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'productId' })
+  product?: ProductEntity | null;
+
+  @Column({ nullable: true })
+  variationId?: string;
+
+  @ManyToOne(() => ProductVariationEntity, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'variationId' })
+  variation?: ProductVariationEntity | null;
 
   @Column()
   quantity: number;
 
   @Column({ nullable: true })
-  companyId: string;
+  productName?: string;
 
   @Column({ nullable: true })
-  productName: string;
+  price?: string;
+
+  /**
+   * Campos legados mantidos para preservar o histórico antigo da tabela
+   * stock_movements. Novas baixas usam StockOperationEntity como origem
+   * principal desses dados.
+   */
+  @Column({ nullable: true })
+  companyId?: string;
 
   @Column({
     type: 'enum',
     enum: StockMovementType,
+    nullable: true,
   })
-  type: StockMovementType;
-
-  @Column()
-  reason: string;
+  type?: StockMovementType;
 
   @Column({ nullable: true })
-  price: string;
-
-  @Column({ nullable: false })
-  paymentMethod: string;
-
-  @Column({ nullable: false })
-  responsibleName: string;
-
-  @Column({ nullable: false })
-  responsibleEmail: string;
+  reason?: string;
 
   @Column({ nullable: true })
-  observation: string;
+  paymentMethod?: string;
+
+  @Column({ nullable: true })
+  responsibleName?: string;
+
+  @Column({ nullable: true })
+  responsibleEmail?: string;
+
+  @Column({ nullable: true })
+  observation?: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -8,7 +8,7 @@ import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
 import { ImageService } from 'src/services/image.service';
 import { toLogString } from 'src/utils/logging';
-import { StockMovementType } from 'src/entities/stock-movement.entity';
+import { StockMovementType } from 'src/entities/stock-movement-type.enum';
 import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
 
 @Injectable()
@@ -69,6 +69,7 @@ export class ProductsService {
             }
             return Object.assign(new ProductVariationEntity(), {
               name: `${v.color} ${v.size}`,
+              barCode: v.barCode,
               price: v.price?.toString(),
               stock: v.stock,
               color: v.color,
@@ -250,6 +251,7 @@ export class ProductsService {
           return Object.assign(new ProductVariationEntity(), {
             ...(existing && { id: existing.id }),
             name: `${v.color} ${v.size}`,
+            barCode: v.barCode ?? existing?.barCode,
             price: v.price?.toString(),
             stock: v.stock,
             color: v.color,

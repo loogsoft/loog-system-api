@@ -1,4 +1,6 @@
 import {
+  ArrayMinSize,
+  IsArray,
   IsEnum,
   IsInt,
   IsEmail,
@@ -7,21 +9,74 @@ import {
   IsNotEmpty,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
-import { StockMovementType } from '../../entities/stock-movement.entity';
+import { Type } from 'class-transformer';
+import { StockMovementType } from '../../entities/stock-movement-type.enum';
 
-export class StockMovementRequestDto {
+export class StockMovementItemDto {
+  @IsOptional()
   @IsUUID()
-  @IsNotEmpty()
-  variationId: string;
+  variationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
 
   @IsInt()
   @Min(1)
   quantity: number;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  productName: string;
+  productName?: string;
+
+  @IsOptional()
+  @IsString()
+  price?: string;
+}
+
+export class StockMovementRequestDto {
+  @IsOptional()
+  @IsString()
+  companyId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  variationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  quantity?: number;
+
+  @IsOptional()
+  @IsString()
+  productName?: string;
+
+  @IsOptional()
+  @IsString()
+  price?: string;
+
+  @IsOptional()
+  @IsString()
+  creditCustomerId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  installment?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => StockMovementItemDto)
+  items?: StockMovementItemDto[];
 
   @IsEnum(StockMovementType)
   type: StockMovementType;
@@ -29,10 +84,6 @@ export class StockMovementRequestDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
-
-  @IsString()
-  @IsNotEmpty()
-  price: string;
 
   @IsString()
   @IsNotEmpty()
