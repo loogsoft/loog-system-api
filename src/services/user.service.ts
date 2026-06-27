@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -17,6 +18,8 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
 import { toLogString } from 'src/utils/logging';
 import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
+import { CompanyEntity } from 'src/entities/company.entity';
+import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 
 @Injectable()
 export class UserService {
@@ -25,6 +28,8 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private repo: Repository<UserEntity>,
+    @InjectRepository(CompanyEntity)
+    private repoCompany: Repository<CompanyEntity>,
     private jwtService: JwtService,
     private emailService: EmailService,
   ) {}
@@ -193,6 +198,26 @@ export class UserService {
         throw new UnauthorizedException('Email ou senha inválidos');
       }
 
+      const company = await this.repoCompany.findOne({
+        where: { id: user.companyId },
+      });
+
+      if (!company) {
+        throw new Error('Company não encontrada');
+      }
+
+      if (company.paymentDueDay < new Date()) {
+        if (company.subscriptionStatus !== SubscriptionStatusEnum.DISABLED) {
+          company.subscriptionStatus = SubscriptionStatusEnum.DISABLED;
+          await this.repoCompany.save(company);
+        }
+
+        throw new ForbiddenException({
+          message: `Acesso temporariamente bloqueado devido a pagamento pendente. Vencimento: ${company.paymentDueDay.toISOString()}`,
+          companyId: company.id,
+          paymentDueDay: company.paymentDueDay,
+        });
+      }
       const code = this.generateCode();
 
       user.verificationCode = code;

@@ -1,3 +1,4 @@
+import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('company')
@@ -35,4 +36,15 @@ export class CompanyEntity {
   // Data da venda
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
+
+  // Data da venda
+  @Column({ type: 'timestamp' })
+  paymentDueDay: Date;
+
+  @Column({
+    type: 'enum',
+    enum: SubscriptionStatusEnum,
+    default: SubscriptionStatusEnum.ACTIVATED,
+  })
+  subscriptionStatus: SubscriptionStatusEnum;
 }

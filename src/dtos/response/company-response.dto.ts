@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { SubscriptionStatusEnum } from '../enums/subscription-status.enum';
 
 export class CompanyResponseDto {
   @Expose()
@@ -6,6 +7,12 @@ export class CompanyResponseDto {
 
   @Expose()
   companyName: string;
+
+  @Expose()
+  paymentDueDay: Date;
+
+  @Expose()
+  subscriptionStatus: SubscriptionStatusEnum;
 
   @Expose()
   companyEmail: string;
