@@ -7,6 +7,9 @@ export class CreditSaleInstallmentEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @Column({ nullable: true })
+  companyId?: string;
+
   @ManyToOne(() => CreditSaleEntity, (sale) => sale.installments, {
     onDelete: 'CASCADE',
   })

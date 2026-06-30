@@ -44,8 +44,8 @@ export class StockOperationService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(dto: StockMovementRequestDto) {
-    this.logger.log(`create:start ${toLogString({ dto })}`);
+  async create(dto: StockMovementRequestDto, companyId: string) {
+    this.logger.log(`create:start ${toLogString({ companyId, dto })}`);
 
     const items = this.normalizeItems(dto);
 
@@ -57,7 +57,7 @@ export class StockOperationService {
       const operation = await manager.save(
         StockOperationEntity,
         manager.create(StockOperationEntity, {
-          companyId: dto.companyId,
+          companyId,
           type: dto.type,
           reason: dto.reason,
           paymentMethod: dto.paymentMethod,
@@ -72,7 +72,7 @@ export class StockOperationService {
       let operationTotal = 0;
 
       for (const item of items) {
-        const target = await this.resolveTarget(manager, item);
+        const target = await this.resolveTarget(manager, item, companyId);
         const nextStock = this.calculateNextStock(
           target.stock,
           item.quantity,
@@ -111,7 +111,7 @@ export class StockOperationService {
             quantity: item.quantity,
             productName: item.productName ?? target.productName,
             price: movementPrice,
-            companyId: dto.companyId,
+            companyId,
             type: dto.type,
             reason: dto.reason,
             paymentMethod: dto.paymentMethod,
@@ -128,6 +128,7 @@ export class StockOperationService {
         await this.createCreditSale(
           manager,
           dto,
+          companyId,
           operationTotal,
           creditSaleProducts,
         );
@@ -136,15 +137,16 @@ export class StockOperationService {
       return operation.id;
     });
 
-    const operation = await this.findOne(operationId);
+    const operation = await this.findOne(operationId, companyId);
 
     this.logger.log(`create:success ${toLogString({ id: operation.id })}`);
 
     return operation;
   }
 
-  async findAll() {
+  async findAll(companyId: string) {
     return this.operationRepo.find({
+      where: { companyId },
       relations: {
         movements: {
           product: true,
@@ -155,9 +157,9 @@ export class StockOperationService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId: string) {
     const operation = await this.operationRepo.findOne({
-      where: { id },
+      where: { id, companyId },
       relations: {
         movements: {
           product: true,
@@ -202,6 +204,7 @@ export class StockOperationService {
   private async resolveTarget(
     manager: EntityManager,
     item: StockMovementItemDto,
+    companyId: string,
   ): Promise<StockTarget> {
     const variationId = item.variationId?.trim();
     const productId = item.productId?.trim();
@@ -220,7 +223,7 @@ export class StockOperationService {
 
     if (variationId) {
       const variation = await manager.findOne(ProductVariationEntity, {
-        where: { id: variationId },
+        where: { id: variationId, companyId },
         relations: { product: true },
       });
 
@@ -228,7 +231,11 @@ export class StockOperationService {
         return this.buildVariationTarget(variation);
       }
 
-      const fallbackProduct = await this.findProduct(manager, variationId);
+      const fallbackProduct = await this.findProduct(
+        manager,
+        variationId,
+        companyId,
+      );
       if (fallbackProduct) {
         return this.buildProductTarget(fallbackProduct);
       }
@@ -236,7 +243,11 @@ export class StockOperationService {
       throw new NotFoundException('Produto ou variação não encontrado');
     }
 
-    const product = await this.findProduct(manager, productId as string);
+    const product = await this.findProduct(
+      manager,
+      productId as string,
+      companyId,
+    );
 
     if (!product) {
       throw new NotFoundException('Produto não encontrado');
@@ -245,9 +256,13 @@ export class StockOperationService {
     return this.buildProductTarget(product);
   }
 
-  private async findProduct(manager: EntityManager, productId: string) {
+  private async findProduct(
+    manager: EntityManager,
+    productId: string,
+    companyId: string,
+  ) {
     return manager.findOne(ProductEntity, {
-      where: { id: productId },
+      where: { id: productId, companyId },
       relations: { variations: true },
     });
   }
@@ -333,6 +348,7 @@ export class StockOperationService {
   private async createCreditSale(
     manager: EntityManager,
     dto: StockMovementRequestDto,
+    companyId: string,
     totalAmount: number,
     products: ProductEntity[],
   ) {
@@ -346,7 +362,7 @@ export class StockOperationService {
     }
 
     const customer = await manager.findOne(CreditCustomerEntity, {
-      where: { id: customerId },
+      where: { id: customerId, companyId },
       lock: { mode: 'pessimistic_write' },
     });
 
@@ -363,7 +379,7 @@ export class StockOperationService {
     const creditSale = await manager.save(
       CreditSaleEntity,
       manager.create(CreditSaleEntity, {
-        companyId: dto.companyId,
+        companyId,
         totalAmount,
         installment,
         status: CreditSaleStatusEnum.PENDING,
@@ -385,6 +401,7 @@ export class StockOperationService {
           : baseCents;
 
       return manager.create(CreditSaleInstallmentEntity, {
+        companyId,
         creditSale,
         installmentNumber,
         amount: amountCents / 100,

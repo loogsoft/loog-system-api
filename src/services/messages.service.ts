@@ -16,11 +16,14 @@ export class MessagesService {
     private repo: Repository<MessageEntity>,
   ) {}
 
-  async create(dto: MessageRequestDto): Promise<MessageResponseDto> {
-    this.logger.log(`create:start ${toLogString({ dto })}`);
+  async create(
+    dto: MessageRequestDto,
+    companyId: string,
+  ): Promise<MessageResponseDto> {
+    this.logger.log(`create:start ${toLogString({ companyId, dto })}`);
     try {
       const exists = await this.repo.findOne({
-        where: { productId: dto.productId },
+        where: { productId: dto.productId, companyId },
       });
       if (exists) {
         exists.name = dto.name;
@@ -38,6 +41,7 @@ export class MessagesService {
         description: dto.description,
         type: dto.type,
         productId: dto.productId,
+        companyId,
       });
       const saved = await this.repo.save(message);
       const result = plainToInstance(MessageResponseDto, saved, {
@@ -54,10 +58,13 @@ export class MessagesService {
     }
   }
 
-  async findAll(): Promise<MessageResponseDto[]> {
-    this.logger.log('findAll:start');
+  async findAll(companyId: string): Promise<MessageResponseDto[]> {
+    this.logger.log(`findAll:start ${toLogString({ companyId })}`);
     try {
-      const messages = await this.repo.find({ order: { date: 'DESC' } });
+      const messages = await this.repo.find({
+        where: { companyId },
+        order: { date: 'DESC' },
+      });
       const result = plainToInstance(MessageResponseDto, messages, {
         excludeExtraneousValues: true,
       });
@@ -72,11 +79,11 @@ export class MessagesService {
     }
   }
 
-  async findOne(id: string): Promise<MessageResponseDto> {
-    this.logger.log(`findOne:start ${toLogString({ productId: id })}`);
+  async findOne(id: string, companyId: string): Promise<MessageResponseDto> {
+    this.logger.log(`findOne:start ${toLogString({ companyId, id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id) },
+        where: { id: Number(id), companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -95,11 +102,12 @@ export class MessagesService {
   async update(
     id: string,
     dto: MessageRequestDto,
+    companyId: string,
   ): Promise<MessageResponseDto> {
-    this.logger.log(`update:start ${toLogString({ productId: id, dto })}`);
+    this.logger.log(`update:start ${toLogString({ companyId, id, dto })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id) },
+        where: { id: Number(id), companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -120,11 +128,11 @@ export class MessagesService {
     }
   }
 
-  async remove(id: string): Promise<string> {
-    this.logger.log(`remove:start ${toLogString({ productId: id })}`);
+  async remove(id: string, companyId: string): Promise<string> {
+    this.logger.log(`remove:start ${toLogString({ companyId, id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id) },
+        where: { id: Number(id), companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');

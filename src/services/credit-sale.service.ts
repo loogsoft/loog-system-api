@@ -30,7 +30,10 @@ export class CreditSaleService {
     return target;
   }
 
-  async create(dto: CreditSaleRequestDto): Promise<CreditSaleResponseDto> {
+  async create(
+    dto: CreditSaleRequestDto,
+    companyId: string,
+  ): Promise<CreditSaleResponseDto> {
     const productIds = [...new Set(dto.productIds)];
 
     return await this.creditSaleRepository.manager.transaction(
@@ -43,7 +46,7 @@ export class CreditSaleService {
           CreditSaleInstallmentEntity,
         );
         const customer = await creditCustomerRepository.findOne({
-          where: { id: dto.customerId },
+          where: { id: dto.customerId, companyId },
           lock: { mode: 'pessimistic_write' },
         });
 
@@ -52,7 +55,7 @@ export class CreditSaleService {
         }
 
         const products = await productRepository.find({
-          where: { id: In(productIds) },
+          where: { id: In(productIds), companyId },
           relations: { creditSale: true },
         });
 
@@ -63,6 +66,7 @@ export class CreditSaleService {
         }
 
         const entity = creditSaleRepository.create({
+          companyId,
           totalAmount: dto.totalAmount,
           installment: dto.installment,
           status: dto.status,
@@ -87,6 +91,7 @@ export class CreditSaleService {
                 : baseCents;
 
             return creditSaleInstallmentRepository.create({
+              companyId,
               creditSale: savedCreditSale,
               installmentNumber,
               amount: amountCents / 100,
@@ -111,7 +116,7 @@ export class CreditSaleService {
         );
 
         const createdCreditSale = await creditSaleRepository.findOneOrFail({
-          where: { id: savedCreditSale.id },
+          where: { id: savedCreditSale.id, companyId },
           relations: {
             customer: true,
             products: true,
@@ -126,8 +131,9 @@ export class CreditSaleService {
     );
   }
 
-  async findAll(): Promise<CreditSaleResponseDto[]> {
+  async findAll(companyId: string): Promise<CreditSaleResponseDto[]> {
     const creditSales = await this.creditSaleRepository.find({
+      where: { companyId },
       relations: {
         customer: true,
         products: true,
@@ -143,9 +149,9 @@ export class CreditSaleService {
     });
   }
 
-  async findOne(id: string): Promise<CreditSaleResponseDto> {
+  async findOne(id: string, companyId: string): Promise<CreditSaleResponseDto> {
     const creditSale = await this.creditSaleRepository.findOne({
-      where: { id },
+      where: { id, companyId },
       relations: {
         customer: true,
         products: true,

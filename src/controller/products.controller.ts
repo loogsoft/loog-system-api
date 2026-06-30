@@ -8,20 +8,19 @@ import {
   Delete,
   UploadedFiles,
   UseInterceptors,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
-
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-
 import { plainToInstance } from 'class-transformer';
-
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
-
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
-
 import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
-
 import { ProductsService } from 'src/services/products.service';
+import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
@@ -41,14 +40,16 @@ export class ProductsController {
   @UseInterceptors(AnyFilesInterceptor())
   async create(
     @Body() dto: ProductRequestDto,
-
-    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req: AuthenticatedRequest,
+    @UploadedFiles()
+    files: Express.Multer.File[],
   ) {
     const productFiles = files?.filter((f) => f.fieldname === 'files') ?? [];
     const variationFilesMap = this.buildVariationFilesMap(files ?? []);
 
     const product = await this.productsService.create(
       dto,
+      req.user.companyId,
       productFiles,
       variationFilesMap,
     );
@@ -57,15 +58,16 @@ export class ProductsController {
   }
 
   @Get()
-  async findAll() {
-    const products = await this.productsService.findAll();
+  async findAll(@Req() req: AuthenticatedRequest) {
+    const products = await this.productsService.findAll(req.user.companyId);
     return plainToInstance(ProductResponseDto, products);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const product = await this.productsService.findOne(id);
+  async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    console.log('Request user:', req.user.companyId);
 
+    const product = await this.productsService.findOne(id, req.user.companyId);
     return plainToInstance(ProductResponseDto, product);
   }
 
@@ -73,6 +75,7 @@ export class ProductsController {
   @UseInterceptors(AnyFilesInterceptor())
   async update(
     @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: UpdateProductRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
@@ -81,6 +84,7 @@ export class ProductsController {
     const product = await this.productsService.update(
       id,
       dto,
+      req.user.companyId,
       productFiles,
       variationFilesMap,
     );
@@ -88,7 +92,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.productsService.remove(id, req.user.companyId);
   }
 }

@@ -16,14 +16,18 @@ export class SuppliersService {
     private readonly imageService: ImageService,
   ) {}
 
-  async create(dto: SupplierRequestDto, files?: Express.Multer.File[]) {
-    this.logger.log(`create:start ${toLogString({ dto })}`);
+  async create(
+    dto: SupplierRequestDto,
+    companyId: string,
+    files?: Express.Multer.File[],
+  ) {
+    this.logger.log(`create:start ${toLogString({ companyId, dto })}`);
     try {
       let images: import('src/entities/image.entity').ImageEntity[] = [];
       if (files && files.length > 0) {
-        images = await this.imageService.createImages(files);
+        images = await this.imageService.createImages(files, companyId);
       }
-      const supplier = this.repo.create({ ...dto, images });
+      const supplier = this.repo.create({ ...dto, companyId, images });
       const savedSupplier = await this.repo.save(supplier);
       this.logger.log(
         `create:success ${toLogString({ id: savedSupplier.id })}`,
@@ -39,12 +43,13 @@ export class SuppliersService {
   async update(
     id: string,
     dto: SupplierRequestDto,
+    companyId: string,
     files?: Express.Multer.File[],
   ) {
-    this.logger.log(`update:start ${toLogString({ id, dto })}`);
+    this.logger.log(`update:start ${toLogString({ id, companyId, dto })}`);
     try {
       const supplier = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
         relations: ['images'],
       });
       if (!supplier) {
@@ -53,10 +58,13 @@ export class SuppliersService {
       let images: import('src/entities/image.entity').ImageEntity[] =
         supplier.images || [];
       if (files && files.length > 0) {
-        const newImages = await this.imageService.createImages(files);
+        const newImages = await this.imageService.createImages(
+          files,
+          companyId,
+        );
         images = [...images, ...newImages];
       }
-      Object.assign(supplier, { ...dto, images });
+      Object.assign(supplier, { ...dto, companyId, images });
       const updated = await this.repo.save(supplier);
       this.logger.log(`update:success ${toLogString({ id })}`);
       return updated;
@@ -67,11 +75,12 @@ export class SuppliersService {
     }
   }
 
-  async findAll() {
-    this.logger.log('findAll:start');
+  async findAll(companyId: string) {
+    this.logger.log(`findAll:start ${toLogString({ companyId })}`);
 
     try {
       const suppliers = await this.repo.find({
+        where: { companyId },
         relations: ['images'],
         order: { createdAt: 'DESC' },
       });
@@ -88,12 +97,12 @@ export class SuppliersService {
     }
   }
 
-  async findOne(id: string) {
-    this.logger.log(`findOne:start ${toLogString({ id })}`);
+  async findOne(id: string, companyId: string) {
+    this.logger.log(`findOne:start ${toLogString({ id, companyId })}`);
 
     try {
       const supplier = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
         relations: ['images'],
       });
 
@@ -106,11 +115,11 @@ export class SuppliersService {
       throw err;
     }
   }
-  async remove(id: string) {
-    this.logger.log(`remove:start ${toLogString({ id })}`);
+  async remove(id: string, companyId: string) {
+    this.logger.log(`remove:start ${toLogString({ id, companyId })}`);
 
     try {
-      const result = await this.repo.delete(id);
+      const result = await this.repo.delete({ id, companyId });
 
       if (!result.affected) {
         throw new NotFoundException('Produto não encontrado');

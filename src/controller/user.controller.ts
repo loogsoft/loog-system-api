@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { UserService } from 'src/services/user.service';
 import { UserRequestDto } from 'src/dtos/request/user-request.dto';
@@ -16,23 +17,20 @@ import { LoginRequestDto } from 'src/dtos/request/login-request.dto';
 import { LoginResponseDto } from 'src/dtos/response/login-response.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { VerifyCoderequestDto } from 'src/dtos/request/verification-code-request.dto';
-import type { Request as ExpressRequest } from 'express';
 import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
-
-type AuthenticatedRequest = ExpressRequest & {
-  user: {
-    id: string;
-    email: string;
-  };
-};
+import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UserService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: UserRequestDto): Promise<UserResponseDto> {
-    return this.usersService.create(dto);
+  create(
+    @Body() dto: UserRequestDto,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<UserResponseDto> {
+    return this.usersService.create(dto, req.user.companyId);
   }
 
   @Post('/verify-email')
@@ -51,34 +49,44 @@ export class UsersController {
     return req.user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('find-all')
-  findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAll();
+  findAll(@Req() req: AuthenticatedRequest): Promise<UserResponseDto[]> {
+    return this.usersService.findAll(req.user.companyId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<UserResponseDto> {
-    return this.usersService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<UserResponseDto> {
+    return this.usersService.findOne(id, req.user.companyId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(
     @Param('id') id: string,
     @Body() dto: Partial<UserRequestDto>,
+    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, dto);
+    return this.usersService.update(id, dto, req.user.companyId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.usersService.remove(id, req.user.companyId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':id/update-password')
   updatePassword(
     @Param('id') id: string,
     @Body() dto: UpdatePasswordRequestDto,
+    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
-    return this.usersService.updatePassword(id, dto);
+    return this.usersService.updatePassword(id, dto, req.user.companyId);
   }
 }

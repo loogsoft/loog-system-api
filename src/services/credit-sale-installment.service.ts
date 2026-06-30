@@ -19,9 +19,13 @@ export class CreditSaleInstallmentService {
     private readonly creditSaleRepo: Repository<CreditSaleEntity>,
   ) {}
 
-  private async refreshCreditSaleStatus(creditSale: CreditSaleEntity) {
+  private async refreshCreditSaleStatus(
+    creditSale: CreditSaleEntity,
+    companyId: string,
+  ) {
     const installments = await this.repo.find({
       where: {
+        companyId,
         creditSale: {
           id: creditSale.id,
         },
@@ -55,9 +59,10 @@ export class CreditSaleInstallmentService {
 
   async create(
     dto: CreditSaleInstallmentRequestDto,
+    companyId: string,
   ): Promise<CreditSaleInstallmentResponseDto> {
     const creditSale = await this.creditSaleRepo.findOne({
-      where: { id: dto.creditSaleId },
+      where: { id: dto.creditSaleId, companyId },
     });
 
     if (!creditSale) {
@@ -65,6 +70,7 @@ export class CreditSaleInstallmentService {
     }
 
     const entity = this.repo.create({
+      companyId,
       installmentNumber: dto.installmentNumber,
       amount: dto.amount,
       dueDate: dto.dueDate,
@@ -74,15 +80,18 @@ export class CreditSaleInstallmentService {
     });
 
     const saved = await this.repo.save(entity);
-    await this.refreshCreditSaleStatus(creditSale);
+    await this.refreshCreditSaleStatus(creditSale, companyId);
 
     return plainToInstance(CreditSaleInstallmentResponseDto, saved, {
       excludeExtraneousValues: true,
     });
   }
 
-  async findAll(): Promise<CreditSaleInstallmentResponseDto[]> {
+  async findAll(
+    companyId: string,
+  ): Promise<CreditSaleInstallmentResponseDto[]> {
     const installments = await this.repo.find({
+      where: { companyId },
       relations: { creditSale: true },
       order: { dueDate: 'ASC' },
     });
@@ -92,9 +101,12 @@ export class CreditSaleInstallmentService {
     });
   }
 
-  async findOne(id: string): Promise<CreditSaleInstallmentResponseDto> {
+  async findOne(
+    id: string,
+    companyId: string,
+  ): Promise<CreditSaleInstallmentResponseDto> {
     const installment = await this.repo.findOne({
-      where: { id },
+      where: { id, companyId },
       relations: { creditSale: true },
     });
 
@@ -110,9 +122,10 @@ export class CreditSaleInstallmentService {
   async update(
     id: string,
     dto: CreditSaleInstallmentRequestDto,
+    companyId: string,
   ): Promise<CreditSaleInstallmentResponseDto> {
     const installment = await this.repo.findOne({
-      where: { id },
+      where: { id, companyId },
     });
 
     if (!installment) {
@@ -120,7 +133,7 @@ export class CreditSaleInstallmentService {
     }
 
     const creditSale = await this.creditSaleRepo.findOne({
-      where: { id: dto.creditSaleId },
+      where: { id: dto.creditSaleId, companyId },
     });
 
     if (!creditSale) {
@@ -134,10 +147,11 @@ export class CreditSaleInstallmentService {
       paidAt: dto.paidAt,
       status: dto.status,
       creditSale,
+      companyId,
     });
 
     const updated = await this.repo.save(installment);
-    await this.refreshCreditSaleStatus(creditSale);
+    await this.refreshCreditSaleStatus(creditSale, companyId);
 
     return plainToInstance(CreditSaleInstallmentResponseDto, updated, {
       excludeExtraneousValues: true,

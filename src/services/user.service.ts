@@ -38,7 +38,10 @@ export class UserService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async create(dto: UserRequestDto): Promise<UserResponseDto> {
+  async create(
+    dto: UserRequestDto,
+    companyId: string,
+  ): Promise<UserResponseDto> {
     this.logger.log(`create:start ${toLogString({ dto })}`);
 
     try {
@@ -57,7 +60,7 @@ export class UserService {
         email: dto.email,
         password: passwordHash,
         userType: dto.userType,
-        companyId: dto.companyId,
+        companyId,
       });
 
       const savedUser = await this.repo.save(userSave);
@@ -76,11 +79,14 @@ export class UserService {
     }
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
-    this.logger.log('findAll:start');
+  async findAll(companyId: string): Promise<UserResponseDto[]> {
+    this.logger.log(`findAll:start ${toLogString({ companyId })}`);
 
     try {
-      const users = await this.repo.find({ order: { dataCadastro: 'DESC' } });
+      const users = await this.repo.find({
+        where: { companyId },
+        order: { dataCadastro: 'DESC' },
+      });
       const result = plainToInstance(UserResponseDto, users);
 
       this.logger.log(
@@ -95,13 +101,16 @@ export class UserService {
     }
   }
 
-  async findOne(id: string): Promise<UserResponseDto> {
-    this.logger.log(`findOne:start ${toLogString({ id })}`);
+  async findOne(id: string, companyId: string): Promise<UserResponseDto> {
+    this.logger.log(`findOne:start ${toLogString({ id, companyId })}`);
 
     try {
       const user = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
       });
+      if (!user) {
+        throw new NotFoundException('Usuário não encontrado');
+      }
       const result = plainToInstance(UserResponseDto, user);
 
       this.logger.log(`findOne:success ${toLogString({ id })}`);
@@ -117,12 +126,13 @@ export class UserService {
   async update(
     id: string,
     dto: Partial<UserRequestDto>,
+    companyId: string,
   ): Promise<UserResponseDto> {
-    this.logger.log(`update:start ${toLogString({ id, dto })}`);
+    this.logger.log(`update:start ${toLogString({ id, companyId, dto })}`);
 
     try {
       const user = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
       });
 
       if (!user) {
@@ -156,12 +166,12 @@ export class UserService {
     }
   }
 
-  async remove(id: string): Promise<string> {
-    this.logger.log(`remove:start ${toLogString({ id })}`);
+  async remove(id: string, companyId: string): Promise<string> {
+    this.logger.log(`remove:start ${toLogString({ id, companyId })}`);
 
     try {
       const user = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
       });
 
       if (!user) {
@@ -180,7 +190,9 @@ export class UserService {
     }
   }
 
-  async verifyEmail(dto: LoginRequestDto): Promise<{ companyId: string }> {
+  async verifyEmail(
+    dto: LoginRequestDto,
+  ): Promise<{ companyId: string; message: string }> {
     this.logger.log(`verifyEmail:start ${toLogString({ email: dto.email })}`);
 
     try {
@@ -231,7 +243,10 @@ export class UserService {
         `verifyEmail:success ${toLogString({ id: user.id, email: user.email })}`,
       );
 
-      return { companyId: user.companyId };
+      return {
+        companyId: user.companyId,
+        message: `Código enviado para ${user.email}`,
+      };
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('verifyEmail:error', errorStack);
@@ -266,15 +281,19 @@ export class UserService {
 
       await this.repo.save(user);
 
-      const payload = { sub: user.id, email: user.email };
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        companyId: user.companyId,
+      };
 
       const token = this.jwtService.sign(payload, {
-        expiresIn: 5 * 60 * 60,
+        expiresIn: '5h',
       });
 
       const result = {
         token,
-        expiresIn: 5 * 60 * 60, // 5 horas em segundos
+        expiresIn: '5h', // 5 horas em segundos
       };
 
       this.logger.log(
@@ -292,12 +311,13 @@ export class UserService {
   async updatePassword(
     id: string,
     dto: UpdatePasswordRequestDto,
+    companyId: string,
   ): Promise<UserResponseDto> {
-    this.logger.log(`update:start ${toLogString({ id, dto })}`);
+    this.logger.log(`update:start ${toLogString({ id, companyId, dto })}`);
 
     try {
       const user = await this.repo.findOne({
-        where: { id },
+        where: { id, companyId },
       });
 
       if (!user) {

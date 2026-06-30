@@ -30,6 +30,7 @@ export class ProductsService {
 
   async create(
     dto: ProductRequestDto,
+    companyId: string,
     files?: Express.Multer.File[],
     variationFilesMap?: Map<number, Express.Multer.File>,
   ) {
@@ -40,7 +41,7 @@ export class ProductsService {
 
       if (dto.supplierId) {
         supplier = await this.supplierRepo.findOne({
-          where: { id: dto.supplierId },
+          where: { id: dto.supplierId, companyId },
         });
 
         if (!supplier) throw new NotFoundException('Fornecedor não encontrado');
@@ -54,7 +55,7 @@ export class ProductsService {
       const hasVariations = Boolean(variations?.length);
       const images = hasVariations
         ? []
-        : await this.imageService.createImages(files ?? []);
+        : await this.imageService.createImages(files ?? [], companyId);
 
       let variationEntities: ProductVariationEntity[] = [];
       if (variations && variations.length > 0) {
@@ -69,6 +70,7 @@ export class ProductsService {
             }
             return Object.assign(new ProductVariationEntity(), {
               name: `${v.color} ${v.size}`,
+              companyId: companyId,
               barCode: v.barCode,
               price: v.price?.toString(),
               stock: v.stock,
@@ -86,6 +88,7 @@ export class ProductsService {
       const product = this.repo.create({
         ...dtoWithoutVariations,
         price: variationEntities.length > 0 ? null : dto.price,
+        companyId: companyId,
         promoPrice: variationEntities.length > 0 ? null : dto.promoPrice,
         stock: variationEntities.length > 0 ? null : dto.stock,
         activeLowStock:
@@ -106,7 +109,7 @@ export class ProductsService {
         })}`,
       );
 
-      return await this.findOne(savedProduct.id);
+      return await this.findOne(savedProduct.id, companyId);
     } catch (err) {
       this.logger.error(err);
 
@@ -114,8 +117,9 @@ export class ProductsService {
     }
   }
 
-  async findAll() {
+  async findAll(companyId: string) {
     return await this.repo.find({
+      where: { companyId: companyId },
       relations: {
         images: true,
         supplier: true,
@@ -128,9 +132,9 @@ export class ProductsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId: string) {
     const product = await this.repo.findOne({
-      where: { id },
+      where: { id, companyId },
 
       relations: {
         images: true,
@@ -147,16 +151,17 @@ export class ProductsService {
   async update(
     id: string,
     dto: UpdateProductRequestDto,
+    companyId: string,
     files?: Express.Multer.File[],
     variationFilesMap?: Map<number, Express.Multer.File>,
   ) {
-    const product = await this.findOne(id);
+    const product = await this.findOne(id, companyId);
     const switchesToVariations = Boolean(dto.variations?.length);
 
     if (switchesToVariations) {
       const productImageIds = (product.images ?? []).map((image) => image.id);
       if (productImageIds.length > 0) {
-        await this.imageService.deleteImages(productImageIds);
+        await this.imageService.deleteImages(productImageIds, companyId);
       }
       product.images = [];
     } else if (dto.imageIds !== undefined) {
@@ -167,7 +172,7 @@ export class ProductsService {
       );
 
       if (imageIdsToDelete.length > 0) {
-        await this.imageService.deleteImages(imageIdsToDelete);
+        await this.imageService.deleteImages(imageIdsToDelete, companyId);
         product.images = product.images.filter(
           (img) => !imageIdsToDelete.includes(img.id),
         );
@@ -175,7 +180,7 @@ export class ProductsService {
     }
 
     if (!switchesToVariations && files && files.length > 0) {
-      const newImages = await this.imageService.createImages(files);
+      const newImages = await this.imageService.createImages(files, companyId);
       product.images = [...product.images, ...newImages];
     }
 
@@ -202,7 +207,7 @@ export class ProductsService {
         product.supplier = null;
       } else {
         const supplier = await this.supplierRepo.findOne({
-          where: { id: supplierId },
+          where: { id: supplierId, companyId },
         });
         if (!supplier) {
           throw new NotFoundException('Fornecedor não encontrado');
@@ -226,6 +231,7 @@ export class ProductsService {
             .select('COUNT(*)', 'count')
             .from('stock_movements', 'sm')
             .where('sm."variationId" = :id', { id: variation.id })
+            .andWhere('sm."companyId" = :companyId', { companyId })
             .getRawOne<{ count: string }>();
 
           if (Number(movementCount?.count) > 0) {
@@ -251,6 +257,7 @@ export class ProductsService {
           return Object.assign(new ProductVariationEntity(), {
             ...(existing && { id: existing.id }),
             name: `${v.color} ${v.size}`,
+            companyId,
             barCode: v.barCode ?? existing?.barCode,
             price: v.price?.toString(),
             stock: v.stock,
@@ -279,8 +286,8 @@ export class ProductsService {
     return await this.repo.save(product);
   }
 
-  async remove(id: string) {
-    const product = await this.findOne(id);
+  async remove(id: string, companyId: string) {
+    const product = await this.findOne(id, companyId);
 
     await this.repo.remove(product);
 
@@ -289,11 +296,16 @@ export class ProductsService {
     };
   }
 
-  async updateStock(id: string, quantity: number, type: StockMovementType) {
+  async updateStock(
+    id: string,
+    quantity: number,
+    type: StockMovementType,
+    companyId: string,
+  ) {
     this.logger.log(`updateStock:start ${toLogString({ id, quantity, type })}`);
 
     try {
-      const product = await this.findOne(id);
+      const product = await this.findOne(id, companyId);
       if (typeof product.stock === 'number') {
         if (type === StockMovementType.IN) {
           product.stock += quantity;

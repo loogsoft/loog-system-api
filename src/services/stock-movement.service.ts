@@ -13,11 +13,12 @@ export class StockMovementService {
     private readonly repo: Repository<StockMovementEntity>,
   ) {}
 
-  async findAll() {
-    this.logger.log('findAll:start');
+  async findAll(companyId: string) {
+    this.logger.log(`findAll:start ${toLogString({ companyId })}`);
 
     try {
       const movements = await this.repo.find({
+        where: { companyId },
         relations: ['operation', 'variation', 'product'],
         order: { createdAt: 'DESC' },
       });
@@ -34,12 +35,14 @@ export class StockMovementService {
     }
   }
 
-  async findByVariation(variationId: string) {
-    this.logger.log(`findByVariation:start ${toLogString({ variationId })}`);
+  async findByVariation(variationId: string, companyId: string) {
+    this.logger.log(
+      `findByVariation:start ${toLogString({ variationId, companyId })}`,
+    );
 
     try {
       const movements = await this.repo.find({
-        where: { variation: { id: variationId } },
+        where: { variation: { id: variationId }, companyId },
         relations: ['operation', 'variation', 'product'],
         order: { createdAt: 'DESC' },
       });

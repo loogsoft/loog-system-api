@@ -5,6 +5,9 @@ export class ProductCategoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  companyId?: string;
+
   @Column()
   name: string;
 

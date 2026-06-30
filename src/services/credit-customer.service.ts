@@ -15,16 +15,20 @@ export class CreditCustomerService {
 
   async create(
     dto: CreditCustomerRequestDto,
+    companyId: string,
   ): Promise<CreditCustomerResponseDto> {
-    const entity = this.repo.create({ ...dto });
+    const entity = this.repo.create({ ...dto, companyId });
     const saved = await this.repo.save(entity);
     return plainToInstance(CreditCustomerResponseDto, saved, {
       excludeExtraneousValues: true,
     });
   }
 
-  async findOne(id: string): Promise<CreditCustomerResponseDto> {
-    const entity = await this.repo.findOne({ where: { id } });
+  async findOne(
+    id: string,
+    companyId: string,
+  ): Promise<CreditCustomerResponseDto> {
+    const entity = await this.repo.findOne({ where: { id, companyId } });
 
     if (!entity) {
       throw new NotFoundException('Cliente não encontrado');
@@ -38,8 +42,9 @@ export class CreditCustomerService {
   async update(
     id: string,
     dto: CreditCustomerRequestDto,
+    companyId: string,
   ): Promise<CreditCustomerResponseDto> {
-    const entity = await this.repo.findOne({ where: { id } });
+    const entity = await this.repo.findOne({ where: { id, companyId } });
 
     if (!entity) {
       throw new NotFoundException('Cliente não encontrado');
@@ -53,8 +58,11 @@ export class CreditCustomerService {
     });
   }
 
-  async findAll(): Promise<CreditCustomerResponseDto[]> {
-    const list = await this.repo.find({ order: { date: 'DESC' } });
+  async findAll(companyId: string): Promise<CreditCustomerResponseDto[]> {
+    const list = await this.repo.find({
+      where: { companyId },
+      order: { date: 'DESC' },
+    });
     return plainToInstance(CreditCustomerResponseDto, list, {
       excludeExtraneousValues: true,
     });

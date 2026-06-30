@@ -11,28 +11,29 @@ export class PrizesService {
     private readonly prizeRepository: Repository<Prize>,
   ) {}
 
-  async create(data: PrizeRequestDto): Promise<Prize> {
-    const prize = this.prizeRepository.create(data);
+  async create(data: PrizeRequestDto, companyId: string): Promise<Prize> {
+    const prize = this.prizeRepository.create({ ...data, companyId });
     return this.prizeRepository.save(prize);
   }
 
-  async findAll(): Promise<Prize[]> {
-    return this.prizeRepository.find();
+  async findAll(companyId: string): Promise<Prize[]> {
+    return this.prizeRepository.find({ where: { companyId } });
   }
 
-  async findOne(id: number): Promise<Prize | null> {
-    return this.prizeRepository.findOneBy({ id });
+  async findOne(id: number, companyId: string): Promise<Prize | null> {
+    return this.prizeRepository.findOneBy({ id, companyId });
   }
 
   async update(
     id: number,
     data: Partial<PrizeRequestDto>,
+    companyId: string,
   ): Promise<Prize | null> {
-    await this.prizeRepository.update(id, data);
-    return this.findOne(id);
+    await this.prizeRepository.update({ id, companyId }, data);
+    return this.findOne(id, companyId);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.prizeRepository.delete(id);
+  async remove(id: number, companyId: string): Promise<void> {
+    await this.prizeRepository.delete({ id, companyId });
   }
 }

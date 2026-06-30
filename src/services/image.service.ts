@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import { ImageEntity } from 'src/entities/image.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import cloudinary from 'src/config/cloudinary.config';
 
@@ -39,11 +39,15 @@ export class ImageService {
     });
   }
 
-  async createImages(files: Express.Multer.File[]): Promise<ImageEntity[]> {
+  async createImages(
+    files: Express.Multer.File[],
+    companyId: string,
+  ): Promise<ImageEntity[]> {
     const images: ImageEntity[] = [];
     for (const file of files) {
       const uploadResult = await this.uploadToCloudinary(file);
       const image = this.repo.create({
+        companyId,
         url: uploadResult.secure_url,
         publicId: uploadResult.public_id,
       });
@@ -52,8 +56,10 @@ export class ImageService {
     return images;
   }
 
-  async deleteImages(imageIds: string[]): Promise<void> {
-    const images = await this.repo.findByIds(imageIds);
+  async deleteImages(imageIds: string[], companyId: string): Promise<void> {
+    const images = await this.repo.find({
+      where: { id: In(imageIds), companyId },
+    });
 
     for (const image of images) {
       await cloudinary.uploader.destroy(image.publicId);

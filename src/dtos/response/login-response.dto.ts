@@ -5,5 +5,5 @@ export class LoginResponseDto {
   token: string;
 
   @Expose()
-  expiresIn: number;
+  expiresIn: string;
 }

@@ -8,6 +8,9 @@ export class ImageEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: true })
+  companyId?: string;
+
   @Column()
   url: string;
 
