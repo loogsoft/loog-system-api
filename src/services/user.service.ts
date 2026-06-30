@@ -40,7 +40,6 @@ export class UserService {
 
   async create(
     dto: UserRequestDto,
-    companyId: string,
   ): Promise<UserResponseDto> {
     this.logger.log(`create:start ${toLogString({ dto })}`);
 
@@ -60,7 +59,7 @@ export class UserService {
         email: dto.email,
         password: passwordHash,
         userType: dto.userType,
-        companyId,
+        companyId: dto.companyId,
       });
 
       const savedUser = await this.repo.save(userSave);

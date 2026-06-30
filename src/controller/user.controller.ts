@@ -28,9 +28,8 @@ export class UsersController {
   @Post()
   create(
     @Body() dto: UserRequestDto,
-    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
-    return this.usersService.create(dto, req.user.companyId);
+    return this.usersService.create(dto);
   }
 
   @Post('/verify-email')
