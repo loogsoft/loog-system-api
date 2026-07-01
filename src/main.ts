@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
-    origin: ['https://admin.loogsystem.com.br', 'http://localhost:5173'],
+    origin: ['https://admin.loogsystem.com.b', 'http://localhost:5173'],
     methods: 'GET,POST,PUT,PATCH,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
   });
