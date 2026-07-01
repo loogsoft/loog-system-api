@@ -12,6 +12,7 @@ export class EmailService {
   }
 
   async sendVerificationCode(email: string, code: string) {
+    console.log(code);
     this.logger.log(
       `sendVerificationCode:start ${toLogString({ email, code })}`,
     );

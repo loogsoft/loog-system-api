@@ -1,3 +1,4 @@
+import { InscriptionTypeStatusEnum } from 'src/dtos/enums/inscription-type-status.enum';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
@@ -47,4 +48,11 @@ export class CompanyEntity {
     default: SubscriptionStatusEnum.ACTIVATED,
   })
   subscriptionStatus: SubscriptionStatusEnum;
+
+  @Column({
+    type: 'enum',
+    enum: InscriptionTypeStatusEnum,
+    default: InscriptionTypeStatusEnum.TESTER,
+  })
+  inscriptionType: InscriptionTypeStatusEnum;
 }

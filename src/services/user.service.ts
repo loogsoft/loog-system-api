@@ -38,9 +38,7 @@ export class UserService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async create(
-    dto: UserRequestDto,
-  ): Promise<UserResponseDto> {
+  async create(dto: UserRequestDto): Promise<UserResponseDto> {
     this.logger.log(`create:start ${toLogString({ dto })}`);
 
     try {

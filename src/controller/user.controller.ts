@@ -24,11 +24,8 @@ import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 export class UsersController {
   constructor(private readonly usersService: UserService) {}
 
-
   @Post()
-  create(
-    @Body() dto: UserRequestDto,
-  ): Promise<UserResponseDto> {
+  create(@Body() dto: UserRequestDto): Promise<UserResponseDto> {
     return this.usersService.create(dto);
   }
 

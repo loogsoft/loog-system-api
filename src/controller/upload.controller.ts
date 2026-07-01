@@ -8,7 +8,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from 'src/services/upload.service';
 
-
 @Controller('upload')
 export class UploadController {
   constructor(private uploadService: UploadService) {}

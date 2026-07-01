@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import { SubscriptionStatusEnum } from '../enums/subscription-status.enum';
+import { InscriptionTypeStatusEnum } from '../enums/inscription-type-status.enum';
 
 export class CompanyResponseDto {
   @Expose()
@@ -13,6 +14,9 @@ export class CompanyResponseDto {
 
   @Expose()
   subscriptionStatus: SubscriptionStatusEnum;
+
+  @Expose()
+  inscriptionType: InscriptionTypeStatusEnum;
 
   @Expose()
   companyEmail: string;
