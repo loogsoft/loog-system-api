@@ -22,10 +22,10 @@ export class CompanyResponseDto {
   companyEmail: string;
 
   @Expose()
-  companyPhone: number;
+  companyPhone: string;
 
   @Expose()
-  companyCpfCnpj: number;
+  companyCpfCnpj: string;
 
   @Expose()
   color: string;

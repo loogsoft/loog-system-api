@@ -7,6 +7,7 @@ import {
   Put,
   Req,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreditSaleInstallmentRequestDto } from 'src/dtos/request/credit-sale-installment-request.dto';
@@ -38,7 +39,7 @@ export class CreditSaleInstallmentController {
 
   @Get(':id')
   async findOne(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<CreditSaleInstallmentResponseDto> {
     return this.creditSaleInstallmentService.findOne(id, req.user.companyId);
@@ -46,7 +47,7 @@ export class CreditSaleInstallmentController {
 
   @Put(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreditSaleInstallmentRequestDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<CreditSaleInstallmentResponseDto> {

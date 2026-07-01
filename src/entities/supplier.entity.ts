@@ -14,7 +14,7 @@ export class SupplierEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
   @Column({ nullable: false })
@@ -41,7 +41,7 @@ export class SupplierEntity {
   @Column({ length: 16, default: 'active' })
   status: string;
 
-  @Column({ length: 16, nullable: true })
+  @Column({ length: 64, nullable: true })
   avatarColor?: string;
 
   @Column({ type: 'int', default: 0 })

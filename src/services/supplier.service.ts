@@ -1,10 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SupplierRequestDto } from 'src/dtos/request/supplier-request.dto';
+import { UpdateSupplierRequestDto } from 'src/dtos/request/update-supplier-request.dto';
+import { SupplierResponseDto } from 'src/dtos/response/supplier-response.dto';
 import { SupplierEntity } from 'src/entities/supplier.entity';
 import { Repository } from 'typeorm';
 import { toLogString } from 'src/utils/logging';
 import { ImageService } from 'src/services/image.service';
+import { plainToInstance } from 'class-transformer';
+
+const RESPONSE_OPTIONS = { excludeExtraneousValues: true };
 
 @Injectable()
 export class SuppliersService {
@@ -32,7 +37,11 @@ export class SuppliersService {
       this.logger.log(
         `create:success ${toLogString({ id: savedSupplier.id })}`,
       );
-      return savedSupplier;
+      return plainToInstance(
+        SupplierResponseDto,
+        savedSupplier,
+        RESPONSE_OPTIONS,
+      );
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('create:error', errorStack);
@@ -42,7 +51,7 @@ export class SuppliersService {
 
   async update(
     id: string,
-    dto: SupplierRequestDto,
+    dto: UpdateSupplierRequestDto,
     companyId: string,
     files?: Express.Multer.File[],
   ) {
@@ -67,7 +76,7 @@ export class SuppliersService {
       Object.assign(supplier, { ...dto, companyId, images });
       const updated = await this.repo.save(supplier);
       this.logger.log(`update:success ${toLogString({ id })}`);
-      return updated;
+      return plainToInstance(SupplierResponseDto, updated, RESPONSE_OPTIONS);
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('update:error', errorStack);
@@ -89,7 +98,7 @@ export class SuppliersService {
         `findAll:success ${toLogString({ count: suppliers.length })}`,
       );
 
-      return suppliers;
+      return plainToInstance(SupplierResponseDto, suppliers, RESPONSE_OPTIONS);
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('findAll:error', errorStack);
@@ -106,9 +115,13 @@ export class SuppliersService {
         relations: ['images'],
       });
 
+      if (!supplier) {
+        throw new NotFoundException('Fornecedor não encontrado');
+      }
+
       this.logger.log(`findOne:success ${toLogString({ id })}`);
 
-      return supplier;
+      return plainToInstance(SupplierResponseDto, supplier, RESPONSE_OPTIONS);
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('findOne:error', errorStack);

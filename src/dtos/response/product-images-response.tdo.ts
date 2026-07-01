@@ -11,5 +11,8 @@ export class ProductImageResponseDto {
   url: string;
 
   @Expose()
-  isPrimary: boolean;
+  publicId?: string;
+
+  @Expose()
+  isPrimary?: boolean;
 }

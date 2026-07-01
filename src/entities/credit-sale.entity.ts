@@ -12,13 +12,13 @@ import { CreditSaleInstallmentEntity } from './credit-sale-installment.entity';
 
 @Entity('credit-sale')
 export class CreditSaleEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ManyToOne(() => CreditCustomerEntity, (customer) => customer.creditSales)
   customer: CreditCustomerEntity;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
   // Valor total da compra

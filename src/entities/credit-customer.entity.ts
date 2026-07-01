@@ -10,9 +10,9 @@ import { CreditSaleEntity } from './credit-sale.entity';
 @Entity('credit-customer')
 export class CreditCustomerEntity {
   // ID único da venda no crediário
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
   @OneToMany(() => CreditSaleEntity, (creditSale) => creditSale.customer, {

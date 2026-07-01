@@ -7,6 +7,9 @@ import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { addMonths } from 'date-fns';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
+import { UpdateCompanyRequestDto } from 'src/dtos/request/update-company-request.dto';
+
+const RESPONSE_OPTIONS = { excludeExtraneousValues: true };
 
 @Injectable()
 export class CompanyService {
@@ -21,20 +24,24 @@ export class CompanyService {
       paymentDueDay: addMonths(new Date(), 1),
     });
     const saved = await this.companyRepository.save(entity);
-    return plainToInstance(CompanyResponseDto, saved);
+    return plainToInstance(CompanyResponseDto, saved, RESPONSE_OPTIONS);
   }
 
   async findAll(): Promise<CompanyResponseDto[]> {
     const list = await this.companyRepository.find();
 
     return list.map((item) =>
-      plainToInstance(CompanyResponseDto, {
-        ...item,
-        subscriptionStatus:
-          item.paymentDueDay < new Date()
-            ? SubscriptionStatusEnum.DISABLED
-            : item.subscriptionStatus,
-      }),
+      plainToInstance(
+        CompanyResponseDto,
+        {
+          ...item,
+          subscriptionStatus:
+            item.paymentDueDay < new Date()
+              ? SubscriptionStatusEnum.DISABLED
+              : item.subscriptionStatus,
+        },
+        RESPONSE_OPTIONS,
+      ),
     );
   }
 
@@ -51,7 +58,7 @@ export class CompanyService {
       found.subscriptionStatus = SubscriptionStatusEnum.DISABLED;
     }
 
-    return plainToInstance(CompanyResponseDto, found);
+    return plainToInstance(CompanyResponseDto, found, RESPONSE_OPTIONS);
   }
 
   async updateSubscription(
@@ -71,18 +78,18 @@ export class CompanyService {
 
     entity.subscriptionStatus = status;
     const updated = await this.companyRepository.save(entity);
-    return plainToInstance(CompanyResponseDto, updated);
+    return plainToInstance(CompanyResponseDto, updated, RESPONSE_OPTIONS);
   }
 
   async update(
     id: string,
-    dto: CompanyRequestDto,
+    dto: UpdateCompanyRequestDto,
   ): Promise<CompanyResponseDto> {
     const entity = await this.companyRepository.findOne({ where: { id } });
     if (!entity) throw new NotFoundException('Empresa não encontrada');
     Object.assign(entity, dto);
     const updated = await this.companyRepository.save(entity);
-    return plainToInstance(CompanyResponseDto, updated);
+    return plainToInstance(CompanyResponseDto, updated, RESPONSE_OPTIONS);
   }
 
   async delete(id: string): Promise<void> {

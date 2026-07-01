@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PrizesService } from 'src/services/prizes.service';
 import { PrizeRequestDto } from 'src/dtos/request/prize-request.dto';
-import { Prize } from 'src/entities/prizes.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/types/authenticated-request';
+import { PrizeResponseDto } from 'src/dtos/response/prize-response.dto';
+import { UpdatePrizeRequestDto } from 'src/dtos/request/update-prize-request.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('prizes')
@@ -24,38 +26,38 @@ export class PrizesController {
   async create(
     @Body() data: PrizeRequestDto,
     @Req() req: AuthenticatedRequest,
-  ): Promise<Prize> {
+  ): Promise<PrizeResponseDto> {
     console.log('Creating prize with data:', data);
     return this.prizesService.create(data, req.user.companyId);
   }
 
   @Get()
-  async findAll(@Req() req: AuthenticatedRequest): Promise<Prize[]> {
+  async findAll(@Req() req: AuthenticatedRequest): Promise<PrizeResponseDto[]> {
     return this.prizesService.findAll(req.user.companyId);
   }
 
   @Get(':id')
   async findOne(
-    @Param('id') id: number,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
-  ): Promise<Prize | null> {
-    return this.prizesService.findOne(Number(id), req.user.companyId);
+  ): Promise<PrizeResponseDto> {
+    return this.prizesService.findOne(id, req.user.companyId);
   }
 
   @Patch(':id')
   async update(
-    @Param('id') id: number,
-    @Body() data: Partial<PrizeRequestDto>,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() data: UpdatePrizeRequestDto,
     @Req() req: AuthenticatedRequest,
-  ): Promise<Prize | null> {
-    return this.prizesService.update(Number(id), data, req.user.companyId);
+  ): Promise<PrizeResponseDto> {
+    return this.prizesService.update(id, data, req.user.companyId);
   }
 
   @Delete(':id')
   async remove(
-    @Param('id') id: number,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<void> {
-    return this.prizesService.remove(Number(id), req.user.companyId);
+    return this.prizesService.remove(id, req.user.companyId);
   }
 }

@@ -7,13 +7,13 @@ import {
 
 @Entity('message')
 export class MessageEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'uuid', nullable: false })
   productId: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
   @Column({ nullable: false })

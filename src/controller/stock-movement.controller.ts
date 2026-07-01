@@ -6,6 +6,7 @@ import {
   Param,
   Req,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { StockMovementRequestDto } from 'src/dtos/request/stock-movement-request.dto';
@@ -36,7 +37,7 @@ export class StockMovementController {
 
   @Get('variation/:variationId')
   findByVariation(
-    @Param('variationId') variationId: string,
+    @Param('variationId', new ParseUUIDPipe()) variationId: string,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.service.findByVariation(variationId, req.user.companyId);

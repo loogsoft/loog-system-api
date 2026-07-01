@@ -9,6 +9,7 @@ import {
   Request,
   Delete,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from 'src/services/user.service';
 import { UserRequestDto } from 'src/dtos/request/user-request.dto';
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { VerifyCoderequestDto } from 'src/dtos/request/verification-code-request.dto';
 import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
 import type { AuthenticatedRequest } from 'src/types/authenticated-request';
+import { UpdateUserRequestDto } from 'src/dtos/request/update-user-request.dto';
 
 @Controller('users')
 export class UsersController {
@@ -54,7 +56,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
     return this.usersService.findOne(id, req.user.companyId);
@@ -63,8 +65,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(
-    @Param('id') id: string,
-    @Body() dto: Partial<UserRequestDto>,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateUserRequestDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
     return this.usersService.update(id, dto, req.user.companyId);
@@ -72,14 +74,17 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.usersService.remove(id, req.user.companyId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/update-password')
   updatePassword(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdatePasswordRequestDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {

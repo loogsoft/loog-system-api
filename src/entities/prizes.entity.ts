@@ -8,10 +8,10 @@ import {
 
 @Entity('prizes')
 export class Prize {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId?: string;
 
   @Column()

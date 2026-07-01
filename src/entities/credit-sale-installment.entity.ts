@@ -4,10 +4,10 @@ import { CreditSaleInstallmentStatusEnum } from 'src/dtos/enums/credit-sale-inst
 
 @Entity('credit-sale-installment')
 export class CreditSaleInstallmentEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId?: string;
 
   @ManyToOne(() => CreditSaleEntity, (sale) => sale.installments, {

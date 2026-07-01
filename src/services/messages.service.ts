@@ -83,7 +83,7 @@ export class MessagesService {
     this.logger.log(`findOne:start ${toLogString({ companyId, id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId },
+        where: { id, companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -107,7 +107,7 @@ export class MessagesService {
     this.logger.log(`update:start ${toLogString({ companyId, id, dto })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId },
+        where: { id, companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');
@@ -132,7 +132,7 @@ export class MessagesService {
     this.logger.log(`remove:start ${toLogString({ companyId, id })}`);
     try {
       const message = await this.repo.findOne({
-        where: { id: Number(id), companyId },
+        where: { id, companyId },
       });
       if (!message) {
         throw new NotFoundException('Mensagem não encontrada');

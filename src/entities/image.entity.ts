@@ -8,7 +8,7 @@ export class ImageEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId?: string;
 
   @Column()

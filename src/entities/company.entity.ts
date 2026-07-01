@@ -5,7 +5,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 @Entity('company')
 export class CompanyEntity {
   // ID único da empresa
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   // Nome da empresa
@@ -18,13 +18,13 @@ export class CompanyEntity {
 
   // Telefone da empresa
 
-  @Column({ nullable: false, type: 'bigint' })
-  companyPhone: number;
+  @Column({ nullable: false, length: 11 })
+  companyPhone: string;
 
   // CPF ou CNPJ da empresa
 
-  @Column({ nullable: false, type: 'bigint' })
-  companyCpfCnpj: number;
+  @Column({ nullable: false, length: 14 })
+  companyCpfCnpj: string;
 
   // Cor da empresa
   @Column({ nullable: false })

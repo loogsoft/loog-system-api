@@ -20,6 +20,7 @@ import { toLogString } from 'src/utils/logging';
 import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-request.dto';
 import { CompanyEntity } from 'src/entities/company.entity';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
+import { UpdateUserRequestDto } from 'src/dtos/request/update-user-request.dto';
 
 @Injectable()
 export class UserService {
@@ -84,7 +85,9 @@ export class UserService {
         where: { companyId },
         order: { dataCadastro: 'DESC' },
       });
-      const result = plainToInstance(UserResponseDto, users);
+      const result = plainToInstance(UserResponseDto, users, {
+        excludeExtraneousValues: true,
+      });
 
       this.logger.log(
         `findAll:success ${toLogString({ count: users.length })}`,
@@ -108,7 +111,9 @@ export class UserService {
       if (!user) {
         throw new NotFoundException('Usuário não encontrado');
       }
-      const result = plainToInstance(UserResponseDto, user);
+      const result = plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+      });
 
       this.logger.log(`findOne:success ${toLogString({ id })}`);
 
@@ -122,7 +127,7 @@ export class UserService {
 
   async update(
     id: string,
-    dto: Partial<UserRequestDto>,
+    dto: UpdateUserRequestDto,
     companyId: string,
   ): Promise<UserResponseDto> {
     this.logger.log(`update:start ${toLogString({ id, companyId, dto })}`);

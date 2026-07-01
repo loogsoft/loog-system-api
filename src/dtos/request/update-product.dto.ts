@@ -1,11 +1,12 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ProductRequestDto } from './product-request.dto';
-import { IsArray, IsOptional, IsUUID } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsOptional, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductRequestDto extends PartialType(ProductRequestDto) {
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(20)
   @IsUUID('4', { each: true })
   @Transform(({ value }) => {
     const transformValue = value as unknown;

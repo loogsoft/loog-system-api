@@ -18,7 +18,7 @@ export class StockMovementEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   operationId?: string;
 
   @ManyToOne(() => StockOperationEntity, (operation) => operation.movements, {
@@ -27,7 +27,7 @@ export class StockMovementEntity {
   @JoinColumn({ name: 'operationId' })
   operation: StockOperationEntity;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   productId?: string;
 
   @ManyToOne(() => ProductEntity, {
@@ -37,7 +37,7 @@ export class StockMovementEntity {
   @JoinColumn({ name: 'productId' })
   product?: ProductEntity | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   variationId?: string;
 
   @ManyToOne(() => ProductVariationEntity, {
@@ -61,7 +61,7 @@ export class StockMovementEntity {
    * stock_movements. Novas baixas usam StockOperationEntity como origem
    * principal desses dados.
    */
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId?: string;
 
   @Column({

@@ -28,7 +28,7 @@ export class ProductVariationEntity {
   @Column({ length: 120 })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true })

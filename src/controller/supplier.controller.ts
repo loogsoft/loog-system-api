@@ -10,11 +10,13 @@ import {
   UseInterceptors,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 import { SupplierRequestDto } from 'src/dtos/request/supplier-request.dto';
+import { UpdateSupplierRequestDto } from 'src/dtos/request/update-supplier-request.dto';
 import { SuppliersService } from 'src/services/supplier.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/types/authenticated-request';
@@ -36,8 +38,8 @@ export class SuppliersController {
   @Patch(':id')
   @UseInterceptors(AnyFilesInterceptor())
   update(
-    @Param('id') id: string,
-    @Body() dto: SupplierRequestDto,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateSupplierRequestDto,
     @Req() req: AuthenticatedRequest,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
@@ -50,12 +52,18 @@ export class SuppliersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.findOne(id, req.user.companyId);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.remove(id, req.user.companyId);
   }
 }

@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsNumber,
   IsArray,
+  ArrayMaxSize,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -12,23 +13,35 @@ import {
   IsNotEmpty,
   IsUUID,
   MaxLength,
+  Max,
 } from 'class-validator';
 import { ProductCategoryEnum } from '../enums/product-category.enum';
 import { ProductVariationRequestDto } from './product-variation-request.dto';
 import { ProductStatusEnum } from '../enums/product-status.enum';
+import {
+  nullableNumber,
+  optionalNumber,
+  optionalTrimmedString,
+  trimString,
+} from './dto-transformers';
 
 export class ProductRequestDto {
   @IsOptional()
   @IsString()
   @MaxLength(50)
+  @Transform(({ value }) => optionalTrimmedString(value))
   barCode?: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Campo nome vazio' })
+  @MaxLength(180)
+  @Transform(({ value }) => trimString(value))
   name: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(2500)
+  @Transform(({ value }) => optionalTrimmedString(value))
   description?: string;
 
   @IsEnum(ProductCategoryEnum)
@@ -38,44 +51,50 @@ export class ProductRequestDto {
   @IsEnum(ProductStatusEnum)
   status?: ProductStatusEnum;
 
-  // ⚠ CORREÇÃO IMPORTANTE
-  @Type(() => Number)
-  @IsNumber({}, { message: 'Preço deve ser número' })
+  @Transform(({ value }) => optionalNumber(value))
+  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Preço deve ser número' })
   @Min(0, { message: 'Preço não pode ser negativo' })
+  @Max(9999999999.99)
   @IsOptional()
   price?: number | null;
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
+  @Transform(({ value }) => optionalTrimmedString(value))
   color?: string | null;
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
+  @Transform(({ value }) => optionalTrimmedString(value))
   size?: string | null;
 
   @IsOptional()
-  @Transform(({ value }) =>
-    value === '' || value === 'null' || value === null ? null : Number(value),
+  @Transform(({ value }) => nullableNumber(value))
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'Preço promocional deve ser número' },
   )
-  @IsNumber({}, { message: 'Preço promocional deve ser número' })
   @Min(0, { message: 'Preço promocional não pode ser negativo' })
+  @Max(9999999999.99)
   promoPrice?: number | null;
 
   @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   activeLowStock?: boolean;
 
-  // ⚠ CORREÇÃO IMPORTANTE
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => optionalNumber(value))
   @IsInt({ message: 'Estoque deve ser inteiro' })
   @Min(0, { message: 'Estoque não pode ser negativo' })
+  @Max(2147483647)
   stock?: number | null;
 
-  // ⚠ CORREÇÃO IMPORTANTE
-  @Type(() => Number)
+  @Transform(({ value }) => optionalNumber(value))
   @IsInt({ message: 'LowStock deve ser inteiro' })
   @Min(0, { message: 'LowStock não pode ser negativo' })
+  @Max(2147483647)
   lowStock: number;
 
   @IsOptional()
@@ -99,6 +118,7 @@ export class ProductRequestDto {
     return transformValue;
   })
   @IsArray()
+  @ArrayMaxSize(100)
   @ValidateNested({ each: true })
   @Type(() => ProductVariationRequestDto)
   variations?: ProductVariationRequestDto[];
@@ -107,6 +127,6 @@ export class ProductRequestDto {
   @Transform(({ value }) =>
     value === '' || value === 'null' ? null : (value as unknown),
   )
-  @IsUUID()
+  @IsUUID('4')
   supplierId?: string | null;
 }

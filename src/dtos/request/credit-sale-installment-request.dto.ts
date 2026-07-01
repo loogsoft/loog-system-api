@@ -5,23 +5,28 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsString,
+  IsUUID,
   Min,
+  Max,
 } from 'class-validator';
 import { CreditSaleInstallmentStatusEnum } from '../enums/credit-sale-instalment-status.enum';
 
 export class CreditSaleInstallmentRequestDto {
-  @IsString()
+  @IsUUID('4')
   @IsNotEmpty()
   creditSaleId: string;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
+  @Max(120)
   @IsNotEmpty()
   installmentNumber: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
+  @Max(99999999.99)
   @IsNotEmpty()
   amount: number;
 

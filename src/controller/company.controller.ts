@@ -9,12 +9,14 @@ import {
   Put,
   Delete,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CompanyService } from '../services/company.service';
 import { CompanyRequestDto } from '../dtos/request/company-request.dto';
 import { CompanyResponseDto } from '../dtos/response/company-response.dto';
-import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UpdateCompanyRequestDto } from 'src/dtos/request/update-company-request.dto';
+import { UpdateSubscriptionRequestDto } from 'src/dtos/request/update-subscription-request.dto';
 
 @Controller('company')
 export class CompanyController {
@@ -33,17 +35,19 @@ export class CompanyController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<CompanyResponseDto> {
+  async findById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<CompanyResponseDto> {
     return await this.companyService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put('subscription/:id')
   async updateInscription(
-    @Param('id') id: string,
-    @Body() body: { status?: SubscriptionStatusEnum } | SubscriptionStatusEnum,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdateSubscriptionRequestDto,
   ): Promise<CompanyResponseDto> {
-    const status = typeof body === 'string' ? body : body?.status;
+    const status = body.status;
 
     if (!status) {
       throw new BadRequestException('Status da assinatura não informado');
@@ -55,15 +59,15 @@ export class CompanyController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
-    @Param('id') id: string,
-    @Body() dto: CompanyRequestDto,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCompanyRequestDto,
   ): Promise<CompanyResponseDto> {
     return await this.companyService.update(id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return await this.companyService.delete(id);
   }
 }

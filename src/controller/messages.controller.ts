@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { MessagesService } from '../services/messages.service';
 import { MessageRequestDto } from '../dtos/request/message-request.dto';
@@ -37,7 +38,7 @@ export class MessagesController {
 
   @Get(':id')
   async findOne(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<MessageResponseDto> {
     return this.messagesService.findOne(id, req.user.companyId);
@@ -45,7 +46,7 @@ export class MessagesController {
 
   @Put(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: MessageRequestDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<MessageResponseDto> {
@@ -54,7 +55,7 @@ export class MessagesController {
 
   @Delete(':id')
   async remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<string> {
     return this.messagesService.remove(id, req.user.companyId);

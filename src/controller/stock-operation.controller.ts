@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { StockMovementRequestDto } from 'src/dtos/request/stock-movement-request.dto';
@@ -31,7 +32,10 @@ export class StockOperationController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.service.findOne(id, req.user.companyId);
   }
 }

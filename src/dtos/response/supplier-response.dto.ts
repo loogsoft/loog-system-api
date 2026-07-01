@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ProductImageResponseDto } from './product-images-response.tdo';
 
 export class SupplierResponseDto {
   @Expose()
@@ -27,4 +28,8 @@ export class SupplierResponseDto {
 
   @Expose()
   openOrders?: number;
+
+  @Expose()
+  @Type(() => ProductImageResponseDto)
+  images?: ProductImageResponseDto[];
 }

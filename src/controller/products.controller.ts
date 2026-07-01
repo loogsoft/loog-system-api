@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
@@ -24,6 +25,8 @@ import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  private readonly responseOptions = { excludeExtraneousValues: true };
 
   private buildVariationFilesMap(
     files: Express.Multer.File[],
@@ -54,27 +57,30 @@ export class ProductsController {
       variationFilesMap,
     );
 
-    return plainToInstance(ProductResponseDto, product);
+    return plainToInstance(ProductResponseDto, product, this.responseOptions);
   }
 
   @Get()
   async findAll(@Req() req: AuthenticatedRequest) {
     const products = await this.productsService.findAll(req.user.companyId);
-    return plainToInstance(ProductResponseDto, products);
+    return plainToInstance(ProductResponseDto, products, this.responseOptions);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     console.log('Request user:', req.user.companyId);
 
     const product = await this.productsService.findOne(id, req.user.companyId);
-    return plainToInstance(ProductResponseDto, product);
+    return plainToInstance(ProductResponseDto, product, this.responseOptions);
   }
 
   @Patch(':id')
   @UseInterceptors(AnyFilesInterceptor())
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
     @Body() dto: UpdateProductRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -88,11 +94,14 @@ export class ProductsController {
       productFiles,
       variationFilesMap,
     );
-    return plainToInstance(ProductResponseDto, product);
+    return plainToInstance(ProductResponseDto, product, this.responseOptions);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.productsService.remove(id, req.user.companyId);
   }
 }

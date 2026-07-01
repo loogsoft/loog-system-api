@@ -8,17 +8,20 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
-    origin: '*',
+    origin: ['https://admin.loogsystem.com.br', 'http://localhost:5173'],
     methods: 'GET,POST,PUT,PATCH,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
   });
 
-  // ✅ Ativa validação global para todos os DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // remove campos que não existem no DTO
-      forbidNonWhitelisted: true, // lança erro se enviar campo extra
-      transform: true, // converte tipos automaticamente
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      validationError: {
+        target: false,
+        value: false,
+      },
     }),
   );
 

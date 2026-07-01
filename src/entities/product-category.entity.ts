@@ -2,10 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('product_categories')
 export class ProductCategoryEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   companyId?: string;
 
   @Column()
