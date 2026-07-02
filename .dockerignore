@@ -4,4 +4,4 @@ dist
 .env
 npm-debug.log
 Dockerfile
-dcoker-compose.yml
+docker-compose.yml
