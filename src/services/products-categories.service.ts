@@ -49,7 +49,7 @@ export class ProductsCategoriesService {
       `findAll:success ${toLogString({ count: categories.length })}`,
     );
 
-    return plainToInstance(
+    return plainToInstance( 
       ProductsCategoriesResponseDto,
       categories,
       RESPONSE_OPTIONS,
