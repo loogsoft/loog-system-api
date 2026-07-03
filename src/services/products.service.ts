@@ -47,10 +47,13 @@ export class ProductsService {
         if (!supplier) throw new NotFoundException('Fornecedor não encontrado');
       }
 
-      const variations = dto.variations;
-      const dtoWithoutVariations = { ...dto };
-      delete dtoWithoutVariations.variations;
-      delete dtoWithoutVariations.supplierId;
+      const {
+        variations,
+        supplierId: _supplierId,
+        category,
+        ...productData
+      } = dto;
+      void _supplierId;
 
       const hasVariations = Boolean(variations?.length);
       const images = hasVariations
@@ -86,7 +89,8 @@ export class ProductsService {
       }
 
       const product = this.repo.create({
-        ...dtoWithoutVariations,
+        ...productData,
+        category,
         price: variationEntities.length > 0 ? null : dto.price,
         companyId: companyId,
         promoPrice: variationEntities.length > 0 ? null : dto.promoPrice,
@@ -187,6 +191,7 @@ export class ProductsService {
     const {
       variations: variationDtos,
       supplierId,
+      category,
       price,
       promoPrice,
       color,
@@ -197,6 +202,7 @@ export class ProductsService {
 
     Object.assign(product, updateData);
 
+    if (category !== undefined) product.category = category;
     if (price !== undefined) product.price = price;
     if (promoPrice !== undefined) product.promoPrice = promoPrice;
     if (color !== undefined) product.color = color;

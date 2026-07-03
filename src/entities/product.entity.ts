@@ -12,8 +12,6 @@ import {
 
 import { ImageEntity } from './image.entity';
 
-import { ProductCategoryEnum } from 'src/dtos/enums/product-category.enum';
-
 import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
 
 import { SupplierEntity } from './supplier.entity';
@@ -51,10 +49,10 @@ export class ProductEntity {
 
   @Index()
   @Column({
-    type: 'enum',
-    enum: ProductCategoryEnum,
+    type: 'varchar',
+    length: 100,
   })
-  category: ProductCategoryEnum;
+  category: string;
 
   @Column({
     type: 'enum',

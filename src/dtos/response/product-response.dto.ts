@@ -1,5 +1,4 @@
 import { Expose, Type } from 'class-transformer';
-import { ProductCategoryEnum } from '../enums/product-category.enum';
 import { ProductImageResponseDto } from './product-images-response.tdo';
 import { ProductStatusEnum } from '../enums/product-status.enum';
 import { ProductVariationResponseDto } from './product-variation-response.dto';
@@ -19,7 +18,7 @@ export class ProductResponseDto {
   description?: string;
 
   @Expose()
-  category: ProductCategoryEnum;
+  category: string;
 
   @Expose()
   status: ProductStatusEnum;

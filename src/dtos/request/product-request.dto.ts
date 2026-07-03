@@ -15,7 +15,6 @@ import {
   MaxLength,
   Max,
 } from 'class-validator';
-import { ProductCategoryEnum } from '../enums/product-category.enum';
 import { ProductVariationRequestDto } from './product-variation-request.dto';
 import { ProductStatusEnum } from '../enums/product-status.enum';
 import {
@@ -44,8 +43,41 @@ export class ProductRequestDto {
   @Transform(({ value }) => optionalTrimmedString(value))
   description?: string;
 
-  @IsEnum(ProductCategoryEnum)
-  category: ProductCategoryEnum;
+  @Transform(({ value }) => {
+    const transformValue = value as unknown;
+
+    if (typeof transformValue === 'string') {
+      try {
+        const parsed = JSON.parse(transformValue) as unknown;
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          'name' in parsed &&
+          typeof parsed.name === 'string'
+        ) {
+          return trimString(parsed.name);
+        }
+        return trimString(transformValue);
+      } catch {
+        return trimString(transformValue);
+      }
+    }
+
+    if (
+      transformValue &&
+      typeof transformValue === 'object' &&
+      'name' in transformValue &&
+      typeof transformValue.name === 'string'
+    ) {
+      return trimString(transformValue.name);
+    }
+
+    return transformValue;
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  category: string;
 
   @IsOptional()
   @IsEnum(ProductStatusEnum)
