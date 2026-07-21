@@ -20,7 +20,7 @@ export class EmailService {
     try {
       await this.resend.emails.send({
         from: 'Loog System <codeverificaton@loogsystem.com.br>',
-        to: 'loogsoftware@gmail.com',
+        to: ['loogsoftware@gmail.com', 'sooplixweb@gmail.com'],
         subject: 'Código de verificação – Loog System',
         html: `
   <div style="
