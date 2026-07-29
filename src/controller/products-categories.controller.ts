@@ -43,7 +43,7 @@ export class ProductsCategoriesController {
   ): Promise<ProductsCategoriesResponseDto> {
     return this.service.findOne(id, req.user.companyId);
   }
- 
+
   @Patch(':id')
   update(
     @Param('id') id: string,

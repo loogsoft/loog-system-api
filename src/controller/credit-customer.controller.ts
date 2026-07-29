@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   ParseUUIDPipe,
+  Delete,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreditCustomerRequestDto } from 'src/dtos/request/credit-customer-request.dto';
@@ -50,5 +51,13 @@ export class CreditCustomerController {
     @Req() req: AuthenticatedRequest,
   ): Promise<CreditCustomerResponseDto> {
     return this.creditCustomerService.update(id, dto, req.user.companyId);
+  }
+
+  @Delete(':id')
+  async delete(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<string> {
+    return this.creditCustomerService.delete(id, req.user.companyId);
   }
 }
