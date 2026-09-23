@@ -47,6 +47,9 @@ export class SupplierEntity {
   @Column({ type: 'int', default: 0 })
   openOrders: number;
 
+  @Column({ length: 300, nullable: true })
+  linkSite?: string;
+
   @OneToMany(() => ProductEntity, (product) => product.supplier, {
     nullable: true,
   })

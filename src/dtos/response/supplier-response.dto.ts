@@ -1,5 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { ProductImageResponseDto } from './product-images-response.tdo';
+import { ProductResponseDto } from './product-response.dto';
 
 export class SupplierResponseDto {
   @Expose()
@@ -28,6 +29,13 @@ export class SupplierResponseDto {
 
   @Expose()
   openOrders?: number;
+
+  @Expose()
+  linkSite?: string;
+
+  @Expose()
+  @Type(() => ProductResponseDto)
+  products?: ProductResponseDto[];
 
   @Expose()
   @Type(() => ProductImageResponseDto)

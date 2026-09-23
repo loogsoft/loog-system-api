@@ -3,11 +3,18 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  Index,
   OneToMany,
 } from 'typeorm';
 import { CreditSaleEntity } from './credit-sale.entity';
 
 @Entity('credit-customer')
+@Index('UQ_credit_customer_company_email', ['companyId', 'customerEmail'], {
+  unique: true,
+})
+@Index('UQ_credit_customer_company_cpf', ['companyId', 'CPF'], {
+  unique: true,
+})
 export class CreditCustomerEntity {
   // ID único da venda no crediário
   @PrimaryGeneratedColumn('uuid')
@@ -25,11 +32,11 @@ export class CreditCustomerEntity {
   customerName: string;
 
   // Email do cliente
-  @Column({ unique: true })
+  @Column()
   customerEmail: string;
 
   // CPF do cliente
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   CPF: string;
 
   // Telefone do cliente

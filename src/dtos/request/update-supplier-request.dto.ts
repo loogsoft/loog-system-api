@@ -1,4 +1,26 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { SupplierRequestDto } from './supplier-request.dto';
+import { ArrayMaxSize, IsArray, IsOptional, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-export class UpdateSupplierRequestDto extends PartialType(SupplierRequestDto) {}
+export class UpdateSupplierRequestDto extends PartialType(SupplierRequestDto) {
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsUUID('4', { each: true })
+  @Transform(({ value }) => {
+    const transformValue = value as unknown;
+
+    if (typeof transformValue === 'string') {
+      try {
+        const parsed = JSON.parse(transformValue) as unknown;
+        if (Array.isArray(parsed)) return parsed as unknown;
+      } catch {
+        return [transformValue];
+      }
+    }
+
+    return transformValue;
+  })
+  imageIds?: string[];
+}

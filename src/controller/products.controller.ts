@@ -1,20 +1,24 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  Patch,
+  Controller,
   Delete,
-  UploadedFiles,
-  UseInterceptors,
-  UseGuards,
-  Req,
+  Get,
+  Param,
   ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { PaginationRequestDto } from 'src/common/dto/pagination-request.dto';
+import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
 import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
@@ -25,8 +29,6 @@ import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
-
-  private readonly responseOptions = { excludeExtraneousValues: true };
 
   private buildVariationFilesMap(
     files: Express.Multer.File[],
@@ -57,13 +59,15 @@ export class ProductsController {
       variationFilesMap,
     );
 
-    return plainToInstance(ProductResponseDto, product, this.responseOptions);
+    return plainToInstance(ProductResponseDto, product);
   }
 
   @Get()
-  async findAll(@Req() req: AuthenticatedRequest) {
-    const products = await this.productsService.findAll(req.user.companyId);
-    return plainToInstance(ProductResponseDto, products, this.responseOptions);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() pagination: PaginationRequestDto,
+  ): Promise<PaginationResponseDto<ProductResponseDto>> {
+    return this.productsService.findAll(req.user.companyId, pagination);
   }
 
   @Get(':id')
@@ -74,7 +78,7 @@ export class ProductsController {
     console.log('Request user:', req.user.companyId);
 
     const product = await this.productsService.findOne(id, req.user.companyId);
-    return plainToInstance(ProductResponseDto, product, this.responseOptions);
+    return plainToInstance(ProductResponseDto, product);
   }
 
   @Patch(':id')
@@ -94,7 +98,7 @@ export class ProductsController {
       productFiles,
       variationFilesMap,
     );
-    return plainToInstance(ProductResponseDto, product, this.responseOptions);
+    return plainToInstance(ProductResponseDto, product);
   }
 
   @Delete(':id')
@@ -103,5 +107,14 @@ export class ProductsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.productsService.remove(id, req.user.companyId);
+  }
+
+  @Post('import-products')
+  @UseInterceptors(FileInterceptor('file'))
+  async importProducts(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.productsService.importProducts(file, req.user.companyId);
   }
 }

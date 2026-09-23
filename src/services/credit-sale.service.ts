@@ -30,6 +30,40 @@ export class CreditSaleService {
     return target;
   }
 
+  private startOfDay(date: Date): Date {
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    return target;
+  }
+
+  private getInstallmentStatusByDueDate(
+    installment: CreditSaleInstallmentEntity,
+  ): CreditSaleInstallmentStatusEnum {
+    if (installment.status === CreditSaleInstallmentStatusEnum.PAID) {
+      return CreditSaleInstallmentStatusEnum.PAID;
+    }
+
+    const today = this.startOfDay(new Date());
+    const dueDate = this.startOfDay(new Date(installment.dueDate));
+
+    return dueDate < today
+      ? CreditSaleInstallmentStatusEnum.OVERDUE
+      : CreditSaleInstallmentStatusEnum.PENDING;
+  }
+
+  private applyInstallmentStatuses(
+    creditSale: CreditSaleEntity,
+  ): CreditSaleEntity {
+    creditSale.installments = [...(creditSale.installments ?? [])]
+      .sort((left, right) => left.installmentNumber - right.installmentNumber)
+      .map((installment) => ({
+        ...installment,
+        status: this.getInstallmentStatusByDueDate(installment),
+      }));
+
+    return creditSale;
+  }
+
   async create(
     dto: CreditSaleRequestDto,
     companyId: string,
@@ -124,9 +158,13 @@ export class CreditSaleService {
           },
         });
 
-        return plainToInstance(CreditSaleResponseDto, createdCreditSale, {
-          excludeExtraneousValues: true,
-        });
+        return plainToInstance(
+          CreditSaleResponseDto,
+          this.applyInstallmentStatuses(createdCreditSale),
+          {
+            excludeExtraneousValues: true,
+          },
+        );
       },
     );
   }
@@ -144,9 +182,17 @@ export class CreditSaleService {
       },
     });
 
-    return plainToInstance(CreditSaleResponseDto, creditSales, {
-      excludeExtraneousValues: true,
-    });
+    const creditSalesWithInstallmentStatuses = creditSales.map((creditSale) =>
+      this.applyInstallmentStatuses(creditSale),
+    );
+
+    return plainToInstance(
+      CreditSaleResponseDto,
+      creditSalesWithInstallmentStatuses,
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async findOne(id: string, companyId: string): Promise<CreditSaleResponseDto> {
@@ -163,8 +209,12 @@ export class CreditSaleService {
       throw new NotFoundException('Crediario nao encontrado');
     }
 
-    return plainToInstance(CreditSaleResponseDto, creditSale, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      CreditSaleResponseDto,
+      this.applyInstallmentStatuses(creditSale),
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 }

@@ -5,11 +5,12 @@ import { StockMovementController } from 'src/controller/stock-movement.controlle
 import { StockMovementService } from 'src/services/stock-movement.service';
 import { ProductVariationEntity } from 'src/entities/product-variation.entity';
 import { StockOperationModule } from 'src/modules/stock-operation.module';
+import { ProductsModule } from './products.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([StockMovementEntity, ProductVariationEntity]),
-    StockOperationModule,
+    StockOperationModule, ProductsModule
   ],
   controllers: [StockMovementController],
   providers: [StockMovementService],

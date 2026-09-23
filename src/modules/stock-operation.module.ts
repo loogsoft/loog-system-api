@@ -9,9 +9,11 @@ import { CreditSaleInstallmentEntity } from 'src/entities/credit-sale-installmen
 import { StockMovementEntity } from 'src/entities/stock-movement.entity';
 import { StockOperationEntity } from 'src/entities/stock-operation.entity';
 import { StockOperationService } from 'src/services/stock-operation.service';
+import { ProductsModule } from './products.module';
 
 @Module({
   imports: [
+    ProductsModule,
     TypeOrmModule.forFeature([
       StockOperationEntity,
       StockMovementEntity,

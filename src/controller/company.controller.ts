@@ -1,22 +1,22 @@
 import {
   BadRequestException,
-  Controller,
-  Post,
   Body,
+  Controller,
+  Delete,
   Get,
   Param,
-  Patch,
-  Put,
-  Delete,
-  UseGuards,
   ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
-import { CompanyService } from '../services/company.service';
-import { CompanyRequestDto } from '../dtos/request/company-request.dto';
-import { CompanyResponseDto } from '../dtos/response/company-response.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateCompanyRequestDto } from 'src/dtos/request/update-company-request.dto';
 import { UpdateSubscriptionRequestDto } from 'src/dtos/request/update-subscription-request.dto';
+import { CompanyRequestDto } from '../dtos/request/company-request.dto';
+import { CompanyResponseDto } from '../dtos/response/company-response.dto';
+import { CompanyService } from '../services/company.service';
 
 @Controller('company')
 export class CompanyController {
@@ -41,7 +41,7 @@ export class CompanyController {
     return await this.companyService.findById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put('subscription/:id')
   async updateInscription(
     @Param('id', new ParseUUIDPipe()) id: string,

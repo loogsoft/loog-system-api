@@ -1,15 +1,25 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductEntity } from 'src/entities/product.entity';
-import { SupplierEntity } from 'src/entities/supplier.entity';
-import { ProductVariationEntity } from 'src/entities/product-variation.entity';
+import { plainToInstance } from 'class-transformer';
+import { PaginationRequestDto } from 'src/common/dto/pagination-request.dto';
+import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
+import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
 import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
+import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
+import { ProductVariationEntity } from 'src/entities/product-variation.entity';
+import { ProductEntity } from 'src/entities/product.entity';
+import { StockMovementType } from 'src/entities/stock-movement-type.enum';
+import { SupplierEntity } from 'src/entities/supplier.entity';
 import { ImageService } from 'src/services/image.service';
 import { toLogString } from 'src/utils/logging';
-import { StockMovementType } from 'src/entities/stock-movement-type.enum';
-import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
+import { Repository } from 'typeorm';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class ProductsService {
@@ -27,6 +37,27 @@ export class ProductsService {
 
     private readonly imageService: ImageService,
   ) {}
+
+  private getTotalStock(product: ProductEntity): number {
+    const activeVariations = (product.variations ?? []).filter(
+      (variation) => variation.isActive !== false,
+    );
+
+    if (activeVariations.length > 0) {
+      return activeVariations.reduce(
+        (total, variation) => total + Number(variation.stock ?? 0),
+        0,
+      );
+    }
+
+    return Number(product.stock ?? 0);
+  }
+
+  private disableIfOutOfStock(product: ProductEntity): void {
+    if (this.getTotalStock(product) <= 0) {
+      product.status = ProductStatusEnum.DISABLED;
+    }
+  }
 
   async create(
     dto: ProductRequestDto,
@@ -105,6 +136,8 @@ export class ProductsService {
         size: variationEntities.length > 0 ? null : (dto.size ?? undefined),
       });
 
+      this.disableIfOutOfStock(product);
+
       const savedProduct = await this.repo.save(product);
 
       this.logger.log(
@@ -121,19 +154,38 @@ export class ProductsService {
     }
   }
 
-  async findAll(companyId: string) {
-    return await this.repo.find({
+  async findAll(
+    companyId: string,
+    pagination: PaginationRequestDto,
+  ): Promise<PaginationResponseDto<ProductResponseDto>> {
+    const { limit = 12, page = 1 } = pagination;
+    const offset = (page - 1) * limit;
+    const [products, total] = await this.repo.findAndCount({
       where: { companyId: companyId },
       relations: {
         images: true,
         supplier: true,
         variations: true,
       },
-
       order: {
         createdAt: 'DESC',
       },
+      take: limit,
+      skip: offset,
     });
+
+    const totalPage = Math.ceil(total / limit);
+
+    const data = plainToInstance(ProductResponseDto, products, {
+      excludeExtraneousValues: true,
+    });
+    return {
+      data,
+      total,
+      limit,
+      page,
+      totalPage,
+    };
   }
 
   async findOne(id: string, companyId: string) {
@@ -289,6 +341,8 @@ export class ProductsService {
       }
     }
 
+    this.disableIfOutOfStock(product);
+
     return await this.repo.save(product);
   }
 
@@ -314,13 +368,14 @@ export class ProductsService {
       const product = await this.findOne(id, companyId);
       if (typeof product.stock === 'number') {
         if (type === StockMovementType.IN) {
-          product.stock += quantity;
-        } else {
-          product.stock -= quantity;
           if (product.stock <= 0) {
             product.status = ProductStatusEnum.DISABLED;
           }
+          product.stock += quantity;
+        } else {
+          product.stock -= quantity;
         }
+        this.disableIfOutOfStock(product);
         await this.repo.save(product);
         this.logger.log(
           `updateStock:success ${toLogString({ id, stock: product.stock })}`,
@@ -333,5 +388,44 @@ export class ProductsService {
       this.logger.error('updateStock:error', errorStack);
       throw err;
     }
+  }
+
+  async importProducts(file: Express.Multer.File, companyId: string) {
+    if (!file) {
+      throw new BadRequestException('Envie uma planilha.');
+    }
+
+    if (!companyId) {
+      throw new BadRequestException('Empresa não encontrada.');
+    }
+
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    const productsToCreate = rows.map((row: any, index) => {
+      if (!row.name || !row.price) {
+        throw new BadRequestException(
+          `Linha ${index + 2}: nome e preço de venda são obrigatórios.`,
+        );
+      }
+      return {
+        name: row.name,
+        category: row.category || null,
+        salePrice: Number(row.price),
+        stock: row.stock ? Number(row.stock) : 0,
+        barcode: row.barcode ? String(row.barCode) : null,
+        companyId: companyId,
+      };
+    });
+
+    await this.repo.save(productsToCreate);
+
+    return {
+      message: 'Produtos importados com sucesso.',
+      total: productsToCreate.length,
+    };
   }
 }
