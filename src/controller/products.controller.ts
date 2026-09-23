@@ -7,7 +7,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
   Req,
   UploadedFile,
   UploadedFiles,
@@ -17,8 +16,6 @@ import {
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PaginationRequestDto } from 'src/common/dto/pagination-request.dto';
-import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
 import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
@@ -63,12 +60,16 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(
-    @Req() req: AuthenticatedRequest,
-    @Query() pagination: PaginationRequestDto,
-  ): Promise<PaginationResponseDto<ProductResponseDto>> {
-    return this.productsService.findAll(req.user.companyId, pagination);
+  findAll(@Req() req: AuthenticatedRequest): Promise<ProductResponseDto[]> {
+    return this.productsService.findAll(req.user.companyId);
   }
+  // @Get()
+  // findAll(
+  //   @Req() req: AuthenticatedRequest,
+  //   @Query() pagination: PaginationRequestDto,
+  // ): Promise<PaginationResponseDto<ProductResponseDto>> {
+  //   return this.productsService.findAll(req.user.companyId, pagination);
+  // }
 
   @Get(':id')
   async findOne(
