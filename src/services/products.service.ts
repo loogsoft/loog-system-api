@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import { PaginationRequestDto } from 'src/common/dto/pagination-request.dto';
-import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
 import { ProductRequestDto } from 'src/dtos/request/product-request.dto';
 import { UpdateProductRequestDto } from 'src/dtos/request/update-product.dto';
@@ -154,13 +152,8 @@ export class ProductsService {
     }
   }
 
-  async findAll(
-    companyId: string,
-    pagination: PaginationRequestDto,
-  ): Promise<PaginationResponseDto<ProductResponseDto>> {
-    const { limit = 12, page = 1 } = pagination;
-    const offset = (page - 1) * limit;
-    const [products, total] = await this.repo.findAndCount({
+  async findAll(companyId: string): Promise<ProductResponseDto[]> {
+    const products = await this.repo.find({
       where: { companyId: companyId },
       relations: {
         images: true,
@@ -170,23 +163,45 @@ export class ProductsService {
       order: {
         createdAt: 'DESC',
       },
-      take: limit,
-      skip: offset,
     });
 
-    const totalPage = Math.ceil(total / limit);
-
-    const data = plainToInstance(ProductResponseDto, products, {
+    return plainToInstance(ProductResponseDto, products, {
       excludeExtraneousValues: true,
     });
-    return {
-      data,
-      total,
-      limit,
-      page,
-      totalPage,
-    };
   }
+  // async findAll(
+  //   companyId: string,
+  //   pagination: PaginationRequestDto,
+  // ): Promise<PaginationResponseDto<ProductResponseDto>> {
+  //   const { limit = 12, page = 1 } = pagination;
+  //   const offset = (page - 1) * limit;
+  //   const [products, total] = await this.repo.findAndCount({
+  //     where: { companyId: companyId },
+  //     relations: {
+  //       images: true,
+  //       supplier: true,
+  //       variations: true,
+  //     },
+  //     order: {
+  //       createdAt: 'DESC',
+  //     },
+  //     take: limit,
+  //     skip: offset,
+  //   });
+
+  //   const totalPage = Math.ceil(total / limit);
+
+  //   const data = plainToInstance(ProductResponseDto, products, {
+  //     excludeExtraneousValues: true,
+  //   });
+  //   return {
+  //     data,
+  //     total,
+  //     limit,
+  //     page,
+  //     totalPage,
+  //   };
+  // }
 
   async findOne(id: string, companyId: string) {
     const product = await this.repo.findOne({
