@@ -4,9 +4,15 @@ const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-// if (!cloudName || !apiKey || !apiSecret) {
-//   throw new Error('Variáveis do Cloudinary não configuradas');
-// }
+if (!cloudName) {
+  throw new Error('Variável cloudName não encotrada!');
+}
+if (!apiKey) {
+  throw new Error('Variável apiKey não encotrada!');
+}
+if (!apiSecret) {
+  throw new Error('Variável apiSecret não encotrada!');
+}
 
 cloudinary.config({
   cloud_name: cloudName,
