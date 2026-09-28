@@ -31,6 +31,11 @@ export class StockOperationController {
     return this.service.findAll(req.user.companyId);
   }
 
+  @Get('best-selling-products')
+  getBestSellingProducts(@Req() req: AuthenticatedRequest) {
+    return this.service.getBestSellingProducts(req.user.companyId);
+  }
+
   @Get(':id')
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
