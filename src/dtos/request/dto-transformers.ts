@@ -50,6 +50,13 @@ export function optionalTrimmedString(value: unknown): unknown {
   return emptyStringToUndefined(trimString(value));
 }
 
+export function optionalSiteUrl(value: unknown): unknown {
+  const normalized = optionalTrimmedString(value);
+  if (typeof normalized !== 'string') return normalized;
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  return `https://${normalized}`;
+}
+
 export function lowercaseEmail(value: unknown): unknown {
   if (typeof value !== 'string') return value;
   return value.trim().toLowerCase();

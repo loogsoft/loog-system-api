@@ -77,6 +77,14 @@ export class StockOperationService {
 
       for (const item of items) {
         const target = await this.resolveTarget(manager, item, companyId);
+        this.assertCanMoveStock(target, dto.type);
+        const wasOutOfStock = target.product
+          ? await this.isProductOutOfStock(
+              manager,
+              target.product.id,
+              companyId,
+            )
+          : false;
         const nextStock = this.calculateNextStock(
           target.stock,
           item.quantity,
@@ -87,9 +95,20 @@ export class StockOperationService {
         if (target.variation) {
           target.variation.stock = nextStock;
           await manager.save(ProductVariationEntity, target.variation);
+          if (target.product) {
+            await this.syncProductStatusAfterStockChange(
+              manager,
+              target.product.id,
+              companyId,
+              dto.type === StockMovementType.IN && wasOutOfStock,
+            );
+          }
         } else if (target.product) {
           target.product.stock = nextStock;
-          if (dto.type === StockMovementType.OUT && nextStock <= 0) {
+          if (
+            nextStock <= 0 ||
+            (dto.type === StockMovementType.IN && wasOutOfStock)
+          ) {
             target.product.status = ProductStatusEnum.DISABLED;
           }
           await manager.save(ProductEntity, target.product);
@@ -158,6 +177,56 @@ export class StockOperationService {
         },
       },
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getBestSellingProducts(companyId: string): Promise<ProductResponseDto> {
+    const operations = await this.operationRepo.find({
+      where: { companyId, type: StockMovementType.OUT },
+      relations: {
+        movements: {
+          product: true,
+          variation: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!operations.length) {
+      throw new NotFoundException('Nenhuma baixa de estoque encontrada');
+    }
+
+    const salesByProduct = new Map<string, number>();
+
+    for (const operation of operations) {
+      for (const movement of operation.movements ?? []) {
+        const productId =
+          movement.productId ||
+          movement.product?.id ||
+          movement.variation?.product?.id;
+
+        if (!productId) continue;
+
+        const quantity = Number(movement.quantity ?? 0);
+        const currentQuantity = salesByProduct.get(productId) ?? 0;
+        salesByProduct.set(productId, currentQuantity + quantity);
+      }
+    }
+
+    const bestSeller = [...salesByProduct.entries()].sort(
+      (a, b) => b[1] - a[1],
+    )[0];
+
+    if (!bestSeller) {
+      throw new NotFoundException('Produto mais vendido não encontrado');
+    }
+
+    const [bestProductId] = bestSeller;
+    const product = await this.productService.findOne(bestProductId, companyId);
+
+    return plainToInstance(ProductResponseDto, product, {
+      excludeExtraneousValues: true,
     });
   }
 
@@ -300,6 +369,82 @@ export class StockOperationService {
     };
   }
 
+  private assertCanMoveStock(
+    target: StockTarget,
+    type: StockMovementType,
+  ): void {
+    if (
+      type === StockMovementType.OUT &&
+      target.product?.status === ProductStatusEnum.DISABLED
+    ) {
+      throw new BadRequestException(
+        'Produto desativado não pode receber baixa de estoque.',
+      );
+    }
+  }
+
+  private getProductTotalStock(product: ProductEntity): number {
+    const activeVariations = (product.variations ?? []).filter(
+      (variation) => variation.isActive !== false,
+    );
+
+    if (activeVariations.length > 0) {
+      return activeVariations.reduce(
+        (total, variation) => total + Number(variation.stock ?? 0),
+        0,
+      );
+    }
+
+    return Number(product.stock ?? 0);
+  }
+
+  private async findProductWithVariations(
+    manager: EntityManager,
+    productId: string,
+    companyId: string,
+  ) {
+    return manager.findOne(ProductEntity, {
+      where: { id: productId, companyId },
+      relations: { variations: true },
+    });
+  }
+
+  private async isProductOutOfStock(
+    manager: EntityManager,
+    productId: string,
+    companyId: string,
+  ): Promise<boolean> {
+    const product = await this.findProductWithVariations(
+      manager,
+      productId,
+      companyId,
+    );
+
+    if (!product) return true;
+
+    return this.getProductTotalStock(product) <= 0;
+  }
+
+  private async syncProductStatusAfterStockChange(
+    manager: EntityManager,
+    productId: string,
+    companyId: string,
+    keepDisabled: boolean,
+  ): Promise<void> {
+    const product = await this.findProductWithVariations(
+      manager,
+      productId,
+      companyId,
+    );
+
+    if (!product) return;
+
+    if (keepDisabled || this.getProductTotalStock(product) <= 0) {
+      product.status = ProductStatusEnum.DISABLED;
+      await manager.save(ProductEntity, product);
+    }
+  }
+
   private normalizeStock(
     value: number | string | null | undefined,
     label: string,
@@ -422,12 +567,14 @@ export class StockOperationService {
     });
 
     if (uniqueProducts.length > 0) {
-      await manager.save(
-        ProductEntity,
-        uniqueProducts.map((product) => ({
-          ...product,
-          creditSale,
-        })),
+      await Promise.all(
+        uniqueProducts.map((product) =>
+          manager.update(
+            ProductEntity,
+            { id: product.id, companyId },
+            { creditSale },
+          ),
+        ),
       );
     }
   }

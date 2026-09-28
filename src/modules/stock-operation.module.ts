@@ -13,6 +13,7 @@ import { ProductsModule } from './products.module';
 
 @Module({
   imports: [
+    ProductsModule,
     TypeOrmModule.forFeature([
       StockOperationEntity,
       StockMovementEntity,
