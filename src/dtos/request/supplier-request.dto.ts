@@ -8,12 +8,14 @@ import {
   Min,
   IsNotEmpty,
   Matches,
+  IsUrl,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
   optionalDigitsOnly,
   optionalLowercaseEmail,
   optionalNumber,
+  optionalSiteUrl,
   optionalTrimmedString,
   trimString,
 } from './dto-transformers';
@@ -51,6 +53,12 @@ export class SupplierRequestDto {
   @MaxLength(180)
   @Transform(({ value }) => optionalTrimmedString(value))
   location?: string;
+
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  @MaxLength(300)
+  @Transform(({ value }) => optionalSiteUrl(value))
+  linkSite?: string;
 
   @IsOptional()
   @IsIn(SUPPLIER_STATUS)
