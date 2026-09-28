@@ -43,7 +43,6 @@ export class StockOperationService {
   constructor(
     @InjectRepository(StockOperationEntity)
     private readonly operationRepo: Repository<StockOperationEntity>,
-
     private readonly dataSource: DataSource,
     private readonly productService: ProductsService,
   ) {}

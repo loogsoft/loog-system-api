@@ -3,9 +3,9 @@ import { v2 as cloudinary } from 'cloudinary';
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
-const typeProcess = process.env.NODE_ENV;
+const nodeEnv = process.env.NODE_ENV;
 
-if (typeProcess === 'production') {
+if (nodeEnv === 'production') {
   if (!cloudName) {
     throw new Error('Variável cloudName não encotrada!');
   }
