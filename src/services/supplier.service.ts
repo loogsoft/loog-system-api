@@ -59,13 +59,27 @@ export class SuppliersService {
     try {
       const supplier = await this.repo.findOne({
         where: { id, companyId },
-        relations: ['images'],
+        relations: { images: true, products: true },
       });
       if (!supplier) {
         throw new NotFoundException('Fornecedor não encontrado');
       }
+      const { imageIds, ...supplierData } = dto;
       let images: import('src/entities/image.entity').ImageEntity[] =
-        supplier.images || [];
+        supplier.images ?? [];
+
+      if (imageIds !== undefined) {
+        const imageIdsToKeep = imageIds ?? [];
+        const imageIdsToDelete = images
+          .map((image) => image.id)
+          .filter((imageId) => !imageIdsToKeep.includes(imageId));
+
+        if (imageIdsToDelete.length > 0) {
+          await this.imageService.deleteImages(imageIdsToDelete, companyId);
+          images = images.filter((image) => imageIdsToKeep.includes(image.id));
+        }
+      }
+
       if (files && files.length > 0) {
         const newImages = await this.imageService.createImages(
           files,
@@ -73,7 +87,7 @@ export class SuppliersService {
         );
         images = [...images, ...newImages];
       }
-      Object.assign(supplier, { ...dto, companyId, images });
+      Object.assign(supplier, { ...supplierData, companyId, images });
       const updated = await this.repo.save(supplier);
       this.logger.log(`update:success ${toLogString({ id })}`);
       return plainToInstance(SupplierResponseDto, updated, RESPONSE_OPTIONS);
@@ -90,8 +104,7 @@ export class SuppliersService {
     try {
       const suppliers = await this.repo.find({
         where: { companyId },
-        relations: ['images'],
-        order: { createdAt: 'DESC' },
+        relations: { images: true, products: true },
       });
 
       this.logger.log(
@@ -112,7 +125,7 @@ export class SuppliersService {
     try {
       const supplier = await this.repo.findOne({
         where: { id, companyId },
-        relations: ['images'],
+        relations: { images: true, products: true },
       });
 
       if (!supplier) {
