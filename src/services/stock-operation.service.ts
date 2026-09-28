@@ -24,9 +24,9 @@ import { CreditSaleEntity } from 'src/entities/credit-sale.entity';
 import { CreditSaleInstallmentEntity } from 'src/entities/credit-sale-installment.entity';
 import { CreditSaleStatusEnum } from 'src/dtos/enums/credit-sale-status.enum';
 import { CreditSaleInstallmentStatusEnum } from 'src/dtos/enums/credit-sale-instalment-status.enum';
+import { plainToInstance } from 'class-transformer';
 import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
 import { ProductsService } from './products.service';
-import { plainToInstance } from 'class-transformer';
 
 type StockTarget = {
   product?: ProductEntity;
@@ -577,5 +577,55 @@ export class StockOperationService {
         ),
       );
     }
+  }
+
+  async getBestSellingProducts(companyId: string): Promise<ProductResponseDto> {
+    const operations = await this.operationRepo.find({
+      where: { companyId, type: StockMovementType.OUT },
+      relations: {
+        movements: {
+          product: true,
+          variation: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!operations.length) {
+      throw new NotFoundException('Nenhuma baixa de estoque encontrada');
+    }
+
+    const salesByProduct = new Map<string, number>();
+
+    for (const operation of operations) {
+      for (const movement of operation.movements ?? []) {
+        const productId =
+          movement.productId ||
+          movement.product?.id ||
+          movement.variation?.product?.id;
+
+        if (!productId) continue;
+
+        const quantity = Number(movement.quantity ?? 0);
+        const currentQuantity = salesByProduct.get(productId) ?? 0;
+        salesByProduct.set(productId, currentQuantity + quantity);
+      }
+    }
+
+    const bestSeller = [...salesByProduct.entries()].sort(
+      (a, b) => b[1] - a[1],
+    )[0];
+
+    if (!bestSeller) {
+      throw new NotFoundException('Produto mais vendido não encontrado');
+    }
+
+    const [bestProductId] = bestSeller;
+    const product = await this.productService.findOne(bestProductId, companyId);
+
+    return plainToInstance(ProductResponseDto, product, {
+      excludeExtraneousValues: true,
+    });
   }
 }
