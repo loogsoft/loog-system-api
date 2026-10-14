@@ -8,6 +8,7 @@ import {
   Min,
   IsNotEmpty,
   Matches,
+  IsUrl,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -45,6 +46,12 @@ export class SupplierRequestDto {
   @Matches(/^\d{10,15}$/)
   @Transform(({ value }) => optionalDigitsOnly(value))
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @IsUrl()
+  linkSite?: string;
 
   @IsOptional()
   @IsString()
