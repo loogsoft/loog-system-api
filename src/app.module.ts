@@ -17,6 +17,9 @@ import { CreditSaleModule } from './modules/credit-sale.module';
 import { CreditCustomerModule } from './modules/credit-customer.module';
 import { CreditSaleInstallmentModule } from './modules/credit-sale-installment.module';
 import { ProductsCategoriesModule } from './modules/products-categories.module';
+import { AiModule } from './ia/ai.module';
+import { InstaModule } from './insta/insta.module';
+import { AsaasModule } from './asaas/asaas.module';
 
 @Module({
   imports: [
@@ -44,6 +47,9 @@ import { ProductsCategoriesModule } from './modules/products-categories.module';
     CreditSaleInstallmentModule,
     CreditCustomerModule,
     ProductsCategoriesModule,
+    AiModule,
+    InstaModule,
+    AsaasModule
   ],
 })
 export class AppModule {}
