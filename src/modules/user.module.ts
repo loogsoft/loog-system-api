@@ -9,6 +9,7 @@ import { JwtStrategy } from 'src/auth/ jwt.strategy';
 import { EmailModule } from './email.module';
 import { CompanyModule } from './company.module';
 import { CompanyEntity } from 'src/entities/company.entity';
+import { AsaasModule } from 'src/asaas/asaas.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CompanyEntity } from 'src/entities/company.entity';
     }),
     EmailModule,
     CompanyModule,
+    AsaasModule,
   ],
   controllers: [UsersController],
   providers: [UserService, JwtStrategy],

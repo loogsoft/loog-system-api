@@ -21,6 +21,7 @@ import { UpdatePasswordRequestDto } from 'src/dtos/request/update-password-reque
 import { CompanyEntity } from 'src/entities/company.entity';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { UpdateUserRequestDto } from 'src/dtos/request/update-user-request.dto';
+import { AsaasService } from 'src/asaas/asaas.service';
 
 @Injectable()
 export class UserService {
@@ -33,7 +34,8 @@ export class UserService {
     private repoCompany: Repository<CompanyEntity>,
     private jwtService: JwtService,
     private emailService: EmailService,
-  ) {}
+    private readonly asaasService: AsaasService,
+  ) { }
 
   private generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -192,6 +194,50 @@ export class UserService {
     }
   }
 
+  async buscarLinkPagamento(
+    dto: LoginRequestDto,
+  ): Promise<{ paymentUrl: string }> {
+    const user = await this.repo.findOne({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email ou senha inválidos');
+    }
+
+    const passwordMatch = await bcrypt.compare(dto.password, user.password);
+
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Email ou senha inválidos');
+    }
+
+    if (!user.companyId) {
+      throw new NotFoundException('Empresa não encontrada');
+    }
+
+    const company = await this.repoCompany.findOne({
+      where: { id: user.companyId },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Empresa não encontrada');
+    }
+
+    if (!company.asaasSubscriptionId) {
+      throw new NotFoundException('Empresa sem assinatura vinculada ao Asaas');
+    }
+
+    const paymentUrl = await this.asaasService.buscarLinkPagamento(
+      company.asaasSubscriptionId,
+    );
+
+    if (!paymentUrl) {
+      throw new NotFoundException('Nenhuma cobrança pendente encontrada');
+    }
+
+    return { paymentUrl };
+  }
+
   async verifyEmail(
     dto: LoginRequestDto,
   ): Promise<{ companyId: string; message: string }> {
@@ -220,7 +266,7 @@ export class UserService {
         throw new Error('Company não encontrada');
       }
 
-      if (company.paymentDueDay < new Date()) {
+      if (company.paymentDueDay < new Date() || company.subscriptionStatus === SubscriptionStatusEnum.DISABLED) {
         if (company.subscriptionStatus !== SubscriptionStatusEnum.DISABLED) {
           company.subscriptionStatus = SubscriptionStatusEnum.DISABLED;
           await this.repoCompany.save(company);

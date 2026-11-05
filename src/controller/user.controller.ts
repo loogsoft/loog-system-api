@@ -41,6 +41,13 @@ export class UsersController {
     return this.usersService.validateUser(dto.email, dto.code);
   }
 
+  @Post('payment-link')
+  buscarLinkPagamento(
+    @Body() dto: LoginRequestDto,
+  ): Promise<{ paymentUrl: string }> {
+    return this.usersService.buscarLinkPagamento(dto);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@Request() req: AuthenticatedRequest): AuthenticatedRequest['user'] {

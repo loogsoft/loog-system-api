@@ -7,6 +7,7 @@ import {
   Matches,
   IsHexColor,
   IsUrl,
+  IsTaxId,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
@@ -37,7 +38,7 @@ export class CompanyRequestDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^(\d{11}|\d{14})$/, { message: 'formato de CPF/CNPJ inválido' })
+  @IsTaxId('pt-BR', { message: 'CPF ou CNPJ inválido.' })
   @Transform(({ value }) => digitsOnly(value))
   companyCpfCnpj: string;
 

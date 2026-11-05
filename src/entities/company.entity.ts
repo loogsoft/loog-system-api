@@ -8,6 +8,9 @@ export class CompanyEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: true })
+  asaasSubscriptionId: string;
+
   // Nome da empresa
   @Column({ nullable: false })
   companyName: string;
@@ -45,7 +48,7 @@ export class CompanyEntity {
   @Column({
     type: 'enum',
     enum: SubscriptionStatusEnum,
-    default: SubscriptionStatusEnum.ACTIVATED,
+    default: SubscriptionStatusEnum.DISABLED,
   })
   subscriptionStatus: SubscriptionStatusEnum;
 

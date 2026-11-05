@@ -1,13 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CompanyEntity } from 'src/entities/company.entity';
 import { CompanyRequestDto } from '../dtos/request/company-request.dto';
 import { CompanyResponseDto } from '../dtos/response/company-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
-import { addDays, addMonths } from 'date-fns';
+import { addMonths } from 'date-fns';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { UpdateCompanyRequestDto } from 'src/dtos/request/update-company-request.dto';
+import { AsaasService } from 'src/asaas/asaas.service';
 
 const RESPONSE_OPTIONS = { excludeExtraneousValues: true };
 
@@ -16,12 +17,17 @@ export class CompanyService {
   constructor(
     @InjectRepository(CompanyEntity)
     private readonly companyRepository: Repository<CompanyEntity>,
-  ) {}
+    @Inject(forwardRef(() => AsaasService))
+    private readonly assasService: AsaasService,
+  ) { }
 
   async create(dto: CompanyRequestDto): Promise<CompanyResponseDto> {
+
+    const asaas = await this.assasService.registrarConta({ email: dto.companyEmail, name: dto.companyName, cpfCnpj: dto.companyCpfCnpj.trim() })
     const entity = this.companyRepository.create({
       ...dto,
-      paymentDueDay: addDays(new Date(), 7),
+      paymentDueDay: addMonths(new Date(), 1),
+      asaasSubscriptionId: asaas,
     });
     const saved = await this.companyRepository.save(entity);
     return plainToInstance(CompanyResponseDto, saved, RESPONSE_OPTIONS);
@@ -45,9 +51,9 @@ export class CompanyService {
     );
   }
 
-  async findById(id: string): Promise<CompanyResponseDto> {
+  async findById(id?: string, subscription?: string): Promise<CompanyResponseDto> {
     const found = await this.companyRepository.findOne({
-      where: { id },
+      where: subscription ? { asaasSubscriptionId: subscription } : { id },
     });
 
     if (!found) {
