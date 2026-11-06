@@ -54,12 +54,6 @@ export class SupplierRequestDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  @IsUrl()
-  linkSite?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(180)
   @Transform(({ value }) => optionalTrimmedString(value))
   location?: string;
