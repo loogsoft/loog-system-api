@@ -132,15 +132,29 @@ export class SuppliersService {
     this.logger.log(`remove:start ${toLogString({ id, companyId })}`);
 
     try {
+      const supplier = await this.repo.findOne({
+        where: { id, companyId },
+        relations: ['images'],
+      });
+
+      if (!supplier) {
+        throw new NotFoundException('Fornecedor não encontrado');
+      }
+
+      if (supplier.images?.length) {
+        const imageIds = supplier.images.map((image) => image.id);
+        await this.imageService.deleteImages(imageIds, companyId);
+      }
+
       const result = await this.repo.delete({ id, companyId });
 
       if (!result.affected) {
-        throw new NotFoundException('Produto não encontrado');
+        throw new NotFoundException('Fornecedor não encontrado');
       }
 
       this.logger.log(`remove:success ${toLogString({ id })}`);
 
-      return { message: 'Produto removido com sucesso' };
+      return { message: 'Fornecedor removido com sucesso' };
     } catch (err) {
       const errorStack = err instanceof Error ? err.stack : String(err);
       this.logger.error('remove:error', errorStack);
