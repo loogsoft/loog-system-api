@@ -17,6 +17,9 @@ export class SupplierEntity {
   @Column({ type: 'uuid', nullable: true })
   companyId: string;
 
+  @Column({ nullable: true })
+  linkSite?: string;
+
   @Column({ nullable: false })
   name: string;
 

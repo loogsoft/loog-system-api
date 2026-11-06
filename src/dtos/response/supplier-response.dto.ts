@@ -4,6 +4,8 @@ import { ProductImageResponseDto } from './product-images-response.tdo';
 export class SupplierResponseDto {
   @Expose()
   id: string;
+  @Expose()
+  linkSite?: string;
 
   @Expose()
   name: string;

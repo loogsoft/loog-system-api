@@ -8,6 +8,7 @@ import {
   Min,
   IsNotEmpty,
   Matches,
+  IsUrl,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -21,6 +22,11 @@ import {
 const SUPPLIER_STATUS = ['active', 'inactive'] as const;
 
 export class SupplierRequestDto {
+  @IsUrl()
+  @IsOptional()
+  @MaxLength(180)
+  linkSite?: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(180)
