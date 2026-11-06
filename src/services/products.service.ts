@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/entities/product.entity';
@@ -26,7 +26,7 @@ export class ProductsService {
     private readonly variationRepo: Repository<ProductVariationEntity>,
 
     private readonly imageService: ImageService,
-  ) {}
+  ) { }
 
   async create(
     dto: ProductRequestDto,
@@ -291,15 +291,37 @@ export class ProductsService {
 
     return await this.repo.save(product);
   }
-
+  
   async remove(id: string, companyId: string) {
-    const product = await this.findOne(id, companyId);
+    try {
+      const product = await this.findOne(id, companyId);
 
-    await this.repo.remove(product);
+      if (!product) {
+        throw new NotFoundException('Produto não encontrado');
+      }
 
-    return {
-      message: 'Produto deletado com sucesso',
-    };
+      if (product.images?.length > 0) {
+        const imgsIds = product.images.map((i) => i.id);
+
+        await this.imageService.deleteImages(imgsIds, companyId);
+      }
+
+      await this.repo.remove(product);
+
+      return {
+        message: 'Produto deletado com sucesso',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      console.error('Erro ao deletar produto:', error);
+
+      throw new InternalServerErrorException(
+        'Erro interno ao deletar produto',
+      );
+    }
   }
 
   async updateStock(

@@ -1,23 +1,19 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
   Index,
-  ManyToOne,
   JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-
 import { ImageEntity } from './image.entity';
-
 import { ProductStatusEnum } from 'src/dtos/enums/product-status.enum';
-
 import { SupplierEntity } from './supplier.entity';
-
-import { ProductVariationEntity } from './product-variation.entity';
 import { CreditSaleEntity } from './credit-sale.entity';
+import { ProductVariationEntity } from './product-variation.entity';
 
 @Entity('products')
 export class ProductEntity {

@@ -3,10 +3,12 @@ import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import { ImageEntity } from 'src/entities/image.entity';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import cloudinary from 'src/config/cloudinary.config';
+import { configureCloudinary } from 'src/config/cloudinary.config';
 
 @Injectable()
 export class ImageService {
+  private readonly cloudinary = configureCloudinary();
+
   constructor(
     @InjectRepository(ImageEntity)
     private readonly repo: Repository<ImageEntity>,
@@ -16,7 +18,7 @@ export class ImageService {
     file: Express.Multer.File,
   ): Promise<UploadApiResponse> {
     return new Promise<UploadApiResponse>((resolve, reject) => {
-      cloudinary.uploader
+      this.cloudinary.uploader
         .upload_stream(
           {
             folder: 'products',
@@ -62,7 +64,7 @@ export class ImageService {
     });
 
     for (const image of images) {
-      await cloudinary.uploader.destroy(image.publicId);
+      await this.cloudinary.uploader.destroy(image.publicId);
       await this.repo.remove(image);
     }
   }
