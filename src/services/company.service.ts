@@ -5,7 +5,7 @@ import { CompanyRequestDto } from '../dtos/request/company-request.dto';
 import { CompanyResponseDto } from '../dtos/response/company-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
-import { addMonths } from 'date-fns';
+import { addDays, addMonths } from 'date-fns';
 import { SubscriptionStatusEnum } from 'src/dtos/enums/subscription-status.enum';
 import { UpdateCompanyRequestDto } from 'src/dtos/request/update-company-request.dto';
 
@@ -21,7 +21,7 @@ export class CompanyService {
   async create(dto: CompanyRequestDto): Promise<CompanyResponseDto> {
     const entity = this.companyRepository.create({
       ...dto,
-      paymentDueDay: addMonths(new Date(), 1),
+      paymentDueDay: addDays(new Date(), 7),
     });
     const saved = await this.companyRepository.save(entity);
     return plainToInstance(CompanyResponseDto, saved, RESPONSE_OPTIONS);

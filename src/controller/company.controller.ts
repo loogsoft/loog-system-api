@@ -41,7 +41,7 @@ export class CompanyController {
     return await this.companyService.findById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put('subscription/:id')
   async updateInscription(
     @Param('id', new ParseUUIDPipe()) id: string,
