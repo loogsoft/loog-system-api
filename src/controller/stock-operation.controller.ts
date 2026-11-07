@@ -7,9 +7,11 @@ import {
   Req,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { StockMovementRequestDto } from 'src/dtos/request/stock-movement-request.dto';
+import { StockOperationQueryDto } from 'src/dtos/request/stock-operation-query.dto';
 import { StockOperationService } from 'src/services/stock-operation.service';
 import type { AuthenticatedRequest } from 'src/types/authenticated-request';
 
@@ -27,8 +29,11 @@ export class StockOperationController {
   }
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.service.findAll(req.user.companyId);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: StockOperationQueryDto,
+  ) {
+    return this.service.findAll(req.user.companyId, query);
   }
 
   @Get('best-selling-products')

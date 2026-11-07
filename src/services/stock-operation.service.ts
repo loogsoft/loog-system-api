@@ -5,7 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Between, DataSource, EntityManager, Repository } from 'typeorm';
+import type { FindOptionsWhere } from 'typeorm';
 import {
   StockMovementItemDto,
   StockMovementRequestDto,
@@ -27,6 +28,7 @@ import { CreditSaleInstallmentStatusEnum } from 'src/dtos/enums/credit-sale-inst
 import { plainToInstance } from 'class-transformer';
 import { ProductResponseDto } from 'src/dtos/response/product-response.dto';
 import { ProductsService } from './products.service';
+import { StockOperationQueryDto } from 'src/dtos/request/stock-operation-query.dto';
 
 type StockTarget = {
   product?: ProductEntity;
@@ -147,9 +149,38 @@ export class StockOperationService {
     return operation;
   }
 
-  async findAll(companyId: string) {
+  async findAll(companyId: string, query: StockOperationQueryDto = {}) {
+    const { date, startDate, endDate } = query;
+
+    if (date && (startDate || endDate)) {
+      throw new BadRequestException(
+        'Informe date ou startDate e endDate, sem combinar os filtros.',
+      );
+    }
+
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      throw new BadRequestException('Informe startDate e endDate juntos.');
+    }
+
+    if (startDate && endDate && startDate > endDate) {
+      throw new BadRequestException(
+        'startDate não pode ser posterior a endDate.',
+      );
+    }
+
+    const where: FindOptionsWhere<StockOperationEntity> = { companyId };
+    const from = date ?? startDate;
+    const to = date ?? endDate;
+
+    if (from && to) {
+      where.createdAt = Between(
+        new Date(`${from}T00:00:00-03:00`),
+        new Date(`${to}T23:59:59.999-03:00`),
+      );
+    }
+
     return this.operationRepo.find({
-      where: { companyId },
+      where,
       relations: {
         movements: {
           product: true,
